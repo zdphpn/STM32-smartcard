@@ -34,11 +34,11 @@ static uint8_t M_REQA(uint8_t* DAT_ATQA,uint16_t* LEN_ATQA)
 	
 	uint8_t CMD[1]={0x26};														//WUPA命令
 	
-	THM3070_SetMIFARE();
+	THM3070_SetTYPEA();
 	THM3070_SetFWT(0x05);															//超时时间为5*330us=1.65ms	
 	
-	THM3070_SendFrame_M(CMD,1);													//协议要短帧,这样发送竟然也可以?
-	RSTST=THM3070_RecvFrame_M(DAT_ATQA,LEN_ATQA);
+	THM3070_SendFrame(CMD,1);													//协议要短帧,这样发送竟然也可以?
+	RSTST=THM3070_RecvFrame(DAT_ATQA,LEN_ATQA);				//不使用MIFARE的发送接收
 
 	return RSTST;
 }
@@ -55,13 +55,12 @@ static uint8_t M_WUPA(uint8_t* DAT_ATQA,uint16_t* LEN_ATQA)
 	
 	uint8_t CMD[1]={0x52};														//WUPA命令
 	
-
-	THM3070_SetMIFARE();
+	THM3070_SetTYPEA();
 	THM3070_SetFWT(0x05);															//超时时间为5*330us=1.65ms
 	
 	
-	THM3070_SendFrame_M(CMD,1);													//协议要短帧,这样发送竟然也可以?
-	RSTST=THM3070_RecvFrame_M(DAT_ATQA,LEN_ATQA);
+	THM3070_SendFrame(CMD,1);													//协议要短帧,这样发送竟然也可以?
+	RSTST=THM3070_RecvFrame(DAT_ATQA,LEN_ATQA);				//不使用MIFARE的发送接收
 
 	return RSTST;
 }
@@ -77,7 +76,7 @@ static uint8_t M_SendAC(uint8_t casLevel,uint8_t* selCode,uint16_t* Len_selCode)
 {
 	uint8_t* temp=M1_RecvData+48;
 	uint8_t curReceivePostion,lastPostion,RSTST;
-	uint16_t len;
+	uint16_t len=0;
 	
 	temp[0]=casLevel;																					//SEL
 	temp[1]=0x20;																							//NVB=0x20,没有已知的UID
@@ -85,8 +84,8 @@ static uint8_t M_SendAC(uint8_t casLevel,uint8_t* selCode,uint16_t* Len_selCode)
 	
 	while(1)
 	{
-		THM3070_SendFrame_M(temp,curReceivePostion+2);					//
-		RSTST=THM3070_RecvFrame_M(temp+lastPostion+2,&len);
+		THM3070_SendFrame(temp,curReceivePostion+2);						//使用14443的发送和接收方式,MIFARE的防冲突有问题
+		RSTST=THM3070_RecvFrame(temp+lastPostion+2,&len);
 		
 		curReceivePostion=lastPostion+len;											//总共接收到的数据长度
 		if(len!=0)
@@ -96,6 +95,7 @@ static uint8_t M_SendAC(uint8_t casLevel,uint8_t* selCode,uint16_t* Len_selCode)
 		
 		if(RSTST&THM_RSTST_CERR)																//有冲突
 		{
+			delay_ms(6);																					//需要延时把冲突之后的字节过滤掉
 			temp[1]=THM3070_ReadREG(THM_REG_BITPOS)+1;						//接收到的比特位长度,NVB低4位
 			temp[1]+=(uint8_t)(len+1)<<4;													//接收到的字节长度,NVB高4位
 			if((temp[1]&0x0f)==0x08)															//比特位长度为8
@@ -140,7 +140,8 @@ static uint8_t M_AnticollAndSelect(uint8_t* DAT_UID,uint16_t* LEN_UID)
 	uint16_t len;
 	uint8_t i,count;
 		
-	THM3070_SetFrameFormat(1);													//标准帧不带CRC
+	THM3070_SetFWT(0x10);																//超时时间为16*330us=5.28ms
+
 	*LEN_UID=0x00;
 	
 	for(i=0;i<3;i++)
@@ -157,10 +158,6 @@ static uint8_t M_AnticollAndSelect(uint8_t* DAT_UID,uint16_t* LEN_UID)
 		if(RSTST==THM_RSTST_FEND)
 		{
 			memcpy(UIDTemp+i*5,selCode+2,5);								//截取出UID,可能包含CT
-			if((selCode[0]&0x04)==0x00)											//
-			{
-				THM3070_SetFrameFormat(2);										//标准帧带CRC
-			}
 		}
 		else
 		{
@@ -172,9 +169,9 @@ static uint8_t M_AnticollAndSelect(uint8_t* DAT_UID,uint16_t* LEN_UID)
 		{
 			selCode[0]=CASLEVEL;
 			selCode[1]=0x70;																//选择
-			THM3070_SendFrame_M(selCode,7);									//
+			THM3070_SendFrame(selCode,7);										//使用14443的发送和接收方式,MIFARE的防冲突有问题
 			selCode[0]=0;
-			RSTST=THM3070_RecvFrame_M(selCode,&len);				//响应SAK
+			RSTST=THM3070_RecvFrame(selCode,&len);					//响应SAK
 			if(RSTST==THM_RSTST_FEND)
 			{
 				break;
@@ -219,7 +216,7 @@ uint8_t FINDM(uint8_t* DAT_UID,uint16_t* LEN_UID)
 	THM3070_RFReset();
 		
 	RSTST=M_WUPA(M1_RecvData,&len);
-	if(RSTST==THM_RSTST_FEND)
+	if(RSTST==THM_RSTST_FEND||RSTST==THM_RSTST_CERR)
 	{
 		RSTST=M_AnticollAndSelect(M1_RecvData,&len);
 		if(RSTST==THM_RSTST_FEND)
@@ -239,7 +236,7 @@ uint8_t FINDM(uint8_t* DAT_UID,uint16_t* LEN_UID)
 uint8_t TESTM()
 {
 
-	return THM_RSTST_FEND;
+	return THM_RSTST_TMROVER;
 }
 
 /*
@@ -257,6 +254,9 @@ static uint8_t AuthKey(uint8_t AB,uint8_t* Key,uint8_t BlockNum)
 	CMD[0]=AB;																						//
 	CMD[1]=BlockNum;																			//赋值块号
 	
+
+	THM3070_SetMIFARE();																	//要切换到MIFARE模式,否则认证命令发不出去
+	THM3070_SetFrameFormat(2);														//标准帧带CRC
 	THM3070_SetFWT(0x64);																	//超时时间为100*330us=33ms
 	
 	THM3070_WriteREG(0x1D,0x00);													//单次认证

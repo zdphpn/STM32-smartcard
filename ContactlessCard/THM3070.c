@@ -347,7 +347,7 @@ uint8_t THM3070_RecvFrame(uint8_t* p_buff,uint16_t* len_buff)
 	if(RStatus&0x40)																			//判断错误类型
 	{
 		RStatus=THM_RSTST_CERR;
-//		delay_ms(6);
+//		delay_ms(6);																			//冲突之后在上层应用中延时
 	}
 	else if(RStatus&0x20)
 	{

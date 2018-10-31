@@ -279,10 +279,10 @@ uint8_t ReadBlocks(uint8_t BlockNum,uint8_t* BlockData,uint16_t* BlockDataLen)
 }
 
 /*
-功能：	读取块
+功能：	写入块
 参数1：	块号
-参数2：	存放块内容
-参数3：	存放块内容的长度
+参数2：	块内容
+参数3：	块内容的长度
 返回：	执行结果
 */
 uint8_t WriteBlocks(uint8_t BlockNum,uint8_t* BlockData,uint16_t BlockDataLen)
@@ -319,10 +319,11 @@ uint8_t WriteBlocks(uint8_t BlockNum,uint8_t* BlockData,uint16_t BlockDataLen)
 }
 
 /*
-功能：	读取块
-参数1：	块号
-参数2：	存放块内容
-参数3：	存放块内容的长度
+功能：	读取多个块
+参数1：	首个块号
+参数2：	要读取的块个数(0x00为数量1)
+参数3：	存放块内容
+参数4：	存放块内容的长度
 返回：	执行结果
 */
 uint8_t ReadMultipleBlocks(uint8_t BlockNum,uint8_t BlockLen,uint8_t* BlockData,uint16_t* BlockDataLen)
@@ -364,9 +365,10 @@ uint8_t ReadMultipleBlocks(uint8_t BlockNum,uint8_t BlockLen,uint8_t* BlockData,
 
 /*
 功能：	读取块
-参数1：	块号
-参数2：	存放块内容
-参数3：	存放块内容的长度
+参数1：	首个块号
+参数2：	要写入的块个数(0x00为数量1)
+参数3：	块内容
+参数4：	块内容的长度
 返回：	执行结果
 */
 uint8_t WriteMultipleBlocks(uint8_t BlockNum,uint8_t BlockLen,uint8_t* BlockData,uint16_t BlockDataLen)
@@ -655,7 +657,7 @@ uint8_t LockAFI()
 }
 
 /*
-功能：	永久锁定AFI,慎用
+功能：	永久锁定DSFID,慎用
 参数1：	块号
 返回：	执行结果
 */

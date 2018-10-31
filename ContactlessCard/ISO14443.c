@@ -360,7 +360,7 @@ static uint8_t SendAC(uint8_t casLevel,uint8_t* selCode,uint16_t* Len_selCode)
 {
 	uint8_t* temp=ISO_SDataTemp+128;
 	uint8_t curReceivePostion,lastPostion,RSTST;
-	uint16_t len;
+	uint16_t len=0;
 	
 	temp[0]=casLevel;																					//SEL
 	temp[1]=0x20;																							//NVB=0x20,没有已知的UID
@@ -379,6 +379,7 @@ static uint8_t SendAC(uint8_t casLevel,uint8_t* selCode,uint16_t* Len_selCode)
 		
 		if(RSTST&THM_RSTST_CERR)																//有冲突
 		{
+			delay_ms(6);																					//需要延时把冲突之后的字节过滤掉
 			temp[1]=THM3070_ReadREG(THM_REG_BITPOS)+1;						//接收到的比特位长度,NVB低4位
 			temp[1]+=(uint8_t)(len+1)<<4;													//接收到的字节长度,NVB高4位
 			if((temp[1]&0x0f)==0x08)															//比特位长度为8
@@ -424,8 +425,8 @@ uint8_t AnticollAndSelect(uint8_t* DAT_UID,uint16_t* LEN_UID)
 	uint8_t i,count;
 	
 	*LEN_UID=0x00;
-	ISO_PICC_FWT=0x05;
-	THM3070_SetFWT(ISO_PICC_FWT);											//超时时间为5*330us=1.65ms
+	ISO_PICC_FWT=0x10;
+	THM3070_SetFWT(ISO_PICC_FWT);											//超时时间为16*330us=5.28ms
 	
 	for(i=0;i<3;i++)
 	{
@@ -587,7 +588,7 @@ uint8_t FINDA(uint8_t* DAT_ATS,uint16_t* LEN_ATS)
 	
 	THM3070_RFReset();
 	RSTST=WUPA(ISO_SDataTemp,&len);
-	if(RSTST==THM_RSTST_FEND)
+	if(RSTST==THM_RSTST_FEND||RSTST==THM_RSTST_CERR)
 	{
 		RSTST=AnticollAndSelect(ISO_SDataTemp,&len);
 		if(RSTST==THM_RSTST_FEND)
