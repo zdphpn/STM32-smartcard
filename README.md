@@ -1,0 +1,2 @@
+# smartcard
+智能卡相关，基于STM32+THM3070，包括7816接触卡、ISO14443、ISO15693、MIFARE非接触卡
