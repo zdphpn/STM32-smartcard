@@ -637,7 +637,7 @@ static void formBlock(uint8_t* block,const uint8_t* sData,uint16_t* len)
 	
 	if(ISO_PICC_CIDSUP)
 	{
-		for(i=*len+2;i>2;i--)																							//循环移位
+		for(i=*len+2;i>1;i--)																							//循环移位
 		{
 			block[i]=sData[i-2];																						//从最后往前,防止同地址出错
 		}
@@ -647,7 +647,7 @@ static void formBlock(uint8_t* block,const uint8_t* sData,uint16_t* len)
 	}
 	else
 	{
-		for(i=*len+1;i>1;i--)
+		for(i=*len+1;i>0;i--)
 		{
 			block[i]=sData[i-1];
 		}

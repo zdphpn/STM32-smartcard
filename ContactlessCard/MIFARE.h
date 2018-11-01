@@ -22,8 +22,8 @@
 
 uint8_t FINDM(uint8_t* DAT_UID,uint16_t* LEN_UID);																			//TYPEA唤醒+防冲突+选择,用于M1卡
 
-uint8_t AuthKeyA(uint8_t* KeyA,uint8_t BlockNum);																				//认证KeyA
-uint8_t AuthKeyB(uint8_t* KeyB,uint8_t BlockNum);																				//认证KeyB
+uint8_t AuthKeyA(uint8_t BlockNum,uint8_t* KeyA);																				//认证KeyA
+uint8_t AuthKeyB(uint8_t BlockNum,uint8_t* KeyB);																				//认证KeyB
 
 uint8_t ReadBlock(uint8_t BlockNum,uint8_t* BlockData);																	//读取块数据
 uint8_t WriteBlock(uint8_t BlockNum,uint8_t* BlockData);																//写入块数据

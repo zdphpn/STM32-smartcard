@@ -223,6 +223,9 @@ uint8_t FINDM(uint8_t* DAT_UID,uint16_t* LEN_UID)
 		{
 			*LEN_UID=len;
 			memcpy(DAT_UID,M1_RecvData,len);
+			
+			THM3070_SetMIFARE();																	//要切换到MIFARE模式,否则认证命令发不出去
+			THM3070_SetFrameFormat(2);														//标准帧带CRC
 		}
 	}
 	return RSTST;
@@ -333,7 +336,7 @@ static uint8_t AuthKey(uint8_t AB,uint8_t* Key,uint8_t BlockNum)
 参数2：	块号
 返回：	执行结果
 */
-uint8_t AuthKeyA(uint8_t* KeyA,uint8_t BlockNum)
+uint8_t AuthKeyA(uint8_t BlockNum,uint8_t* KeyA)
 {
 	uint8_t RSTST;
 	
@@ -348,7 +351,7 @@ uint8_t AuthKeyA(uint8_t* KeyA,uint8_t BlockNum)
 参数2：	块号
 返回：	执行结果
 */
-uint8_t AuthKeyB(uint8_t* KeyB,uint8_t BlockNum)
+uint8_t AuthKeyB(uint8_t BlockNum,uint8_t* KeyB)
 {
 	uint8_t RSTST;
 	
@@ -507,11 +510,17 @@ uint8_t AddValue(uint8_t BlockNum,uint8_t* Value)
 {
 	uint8_t res;
 	uint16_t num;
+	uint8_t VTemp[4];
+	
+	VTemp[0]=Value[3];																	//倒序存放
+	VTemp[1]=Value[2];
+	VTemp[2]=Value[1];
+	VTemp[3]=Value[0];
 	
 	num=BlockNum+1;
 	if(num%4==0)return 3;
 	
-	res=Increment(BlockNum,Value);
+	res=Increment(BlockNum,VTemp);
 	if(res!=0)
 	{
 		return res;
@@ -530,11 +539,17 @@ uint8_t SubValue(uint8_t BlockNum,uint8_t* Value)
 {
 	uint8_t res;
 	uint16_t num;
+	uint8_t VTemp[4];
+	
+	VTemp[0]=Value[3];																	//倒序存放
+	VTemp[1]=Value[2];
+	VTemp[2]=Value[1];
+	VTemp[3]=Value[0];
 	
 	num=BlockNum+1;
 	if(num%4==0)return 3;
 	
-	res=Decrement(BlockNum,Value);
+	res=Decrement(BlockNum,VTemp);
 	if(res!=0)
 	{
 		return res;

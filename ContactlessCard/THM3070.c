@@ -116,7 +116,7 @@ static uint8_t THM3070_REG_Init()
 	THM3070_WriteREG(THM_REG_PWYH,0x27);									//(0x27+1)/Fc
 	THM3070_WriteREG(THM_REG_EMVEN,0xFD);									//使能各种噪声错误检测
 	THM3070_WriteREG(THM_REG_RXCON,0x42);									//接收电路工作,放大倍数40dB
-	THM3070_WriteREG(THM_REG_TXCON,0x72);									//10%ASK调制,打开发射电路
+	THM3070_WriteREG(THM_REG_TXCON,0x62);									//10%ASK调制,打开发射电路
 	
 	THM3070_SetFWT(0x64);																	//设置一个默认的超时时间100*330us=33ms
 	
@@ -503,7 +503,7 @@ void THM3070_PortMode(uint8_t mode)
 		SPI_InitStructure.SPI_CPOL=SPI_CPOL_High;
 		SPI_InitStructure.SPI_CPHA=SPI_CPHA_2Edge;
 		SPI_InitStructure.SPI_NSS=SPI_NSS_Soft;
-		SPI_InitStructure.SPI_BaudRatePrescaler=SPI_BaudRatePrescaler_32 ;
+		SPI_InitStructure.SPI_BaudRatePrescaler=SPI_BaudRatePrescaler_16;
 		SPI_InitStructure.SPI_FirstBit=SPI_FirstBit_MSB;
 		SPI_InitStructure.SPI_CRCPolynomial=7;
 		SPI_Init(THM_SPIx,&SPI_InitStructure);
