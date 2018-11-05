@@ -57,7 +57,7 @@ uint8_t THM3070_Init()
 	
 	temp=THM3070_REG_Init();															//寄存器初始化
 	
-	THM3070_RFClose();																		//默认把场关闭
+//	THM3070_RFClose();																		//默认把场关闭
 	
 	return temp;
 }

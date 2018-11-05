@@ -206,7 +206,7 @@ static uint8_t M_AnticollAndSelect(uint8_t* DAT_UID,uint16_t* LEN_UID)
 功能：	复位场+TYPEA唤醒+防冲突+选择
 参数1：	卡返回的UID,保证其空间>=4*n
 参数2：	UID的长度
-返回：	执行结果
+返回：	执行结果/0成功,4超时
 */
 uint8_t FINDM(uint8_t* DAT_UID,uint16_t* LEN_UID)
 {
@@ -234,7 +234,7 @@ uint8_t FINDM(uint8_t* DAT_UID,uint16_t* LEN_UID)
 /*
 功能：	测试卡片是否还在天线场内,暂未实现
 参数1：	无
-返回：	执行结果
+返回：	执行结果/0有卡,4无卡
 */
 uint8_t TESTM()
 {
@@ -268,7 +268,7 @@ static uint8_t AuthKey(uint8_t AB,uint8_t* Key,uint8_t BlockNum)
 	THM3070_RecvFrame_M(M1_RecvData,&len);
 	if(len!=4)																						//返回4字节随机数
 	{
-		return 2;
+		return 4;
 	}
 	
 	THM3070_WriteREG(0x15,0x08);													//
@@ -369,7 +369,7 @@ uint8_t AuthKeyB(uint8_t BlockNum,uint8_t* KeyB)
 uint8_t ReadBlock(uint8_t BlockNum,uint8_t* BlockData)
 {
 	uint16_t len;
-	uint8_t CMD[2]={0x30,0x00};														//读命令
+	uint8_t CMD[2]={0x30,0x00};														//命令
 	CMD[1]=BlockNum;																			//赋值块号
 	
 	THM3070_SetFWT(0x64);																	//超时时间为100*330us=33ms
@@ -382,7 +382,7 @@ uint8_t ReadBlock(uint8_t BlockNum,uint8_t* BlockData)
 		return 0;
 	}
 	
-	return 1;
+	return 4;
 }
 
 /*
@@ -394,7 +394,7 @@ uint8_t ReadBlock(uint8_t BlockNum,uint8_t* BlockData)
 uint8_t WriteBlock(uint8_t BlockNum,uint8_t* BlockData)
 {
 	uint16_t len;
-	uint8_t CMD[2]={0xA0,0x00};														//写命令
+	uint8_t CMD[2]={0xA0,0x00};														//命令
 	CMD[1]=BlockNum;
 	
 	THM3070_SetFWT(0x64);																	//超时时间为100*330us=33ms
@@ -403,13 +403,13 @@ uint8_t WriteBlock(uint8_t BlockNum,uint8_t* BlockData)
 	THM3070_RecvFrame_M(M1_RecvData,&len);
 	if(len!=0x01||M1_RecvData[0]!=0xA0)										//接收判断
 	{
-		return 1;
+		return 4;
 	}
 	THM3070_SendFrame_M(BlockData,0x10);									//发送数据
 	THM3070_RecvFrame_M(M1_RecvData,&len);								//接收
 	if(len!=0x01||M1_RecvData[0]!=0xA0)										//接收判断
 	{
-		return 1;
+		return 4;
 	}
 	
 	return 0;
@@ -427,7 +427,7 @@ uint8_t ReadValue(uint8_t BlockNum,uint8_t* Value)
 	uint16_t num;
 	
 	num=BlockNum+1;
-	if(num%4==0)return 3;
+	if(num%4==0)return 1;
 	
 	res=ReadBlock(BlockNum,M1_RecvData);
 	if(res==0)
@@ -461,7 +461,7 @@ uint8_t ReadValue(uint8_t BlockNum,uint8_t* Value)
 		return 0;
 	}
 	
-	return 1;
+	return 4;
 }
 
 /*
@@ -478,7 +478,7 @@ uint8_t WriteValue(uint8_t BlockNum,uint8_t* Value)
 	uint16_t num;
 	
 	num=BlockNum+1;
-	if(num%4==0)return 3;
+	if(num%4==0)return 1;
 	
 	VTemp[0]=Value[3];																	//倒序存放
 	VTemp[1]=Value[2];
@@ -518,7 +518,7 @@ uint8_t AddValue(uint8_t BlockNum,uint8_t* Value)
 	VTemp[3]=Value[0];
 	
 	num=BlockNum+1;
-	if(num%4==0)return 3;
+	if(num%4==0)return 1;
 	
 	res=Increment(BlockNum,VTemp);
 	if(res!=0)
@@ -547,7 +547,7 @@ uint8_t SubValue(uint8_t BlockNum,uint8_t* Value)
 	VTemp[3]=Value[0];
 	
 	num=BlockNum+1;
-	if(num%4==0)return 3;
+	if(num%4==0)return 1;
 	
 	res=Decrement(BlockNum,VTemp);
 	if(res!=0)
@@ -570,11 +570,11 @@ uint8_t SubValue(uint8_t BlockNum,uint8_t* Value)
 uint8_t Decrement(uint8_t BlockNum,uint8_t* Value)
 {
 	uint16_t len;
-	uint8_t CMD[2]={0xC0,0x00};														//写命令
+	uint8_t CMD[2]={0xC0,0x00};														//命令
 	uint16_t num;
 	
 	num=BlockNum+1;
-	if(num%4==0)return 3;
+	if(num%4==0)return 1;
 	
 	CMD[1]=BlockNum;
 	THM3070_SetFWT(0x64);																	//超时时间为100*330us=33ms
@@ -583,7 +583,7 @@ uint8_t Decrement(uint8_t BlockNum,uint8_t* Value)
 	THM3070_RecvFrame_M(M1_RecvData,&len);
 	if(len!=0x01||M1_RecvData[0]!=0xA0)										//接收判断
 	{
-		return 1;
+		return 4;
 	}
 	
 	THM3070_SetFWT(0x64);																	//超时时间为100*330us=33ms
@@ -592,7 +592,7 @@ uint8_t Decrement(uint8_t BlockNum,uint8_t* Value)
 	THM3070_RecvFrame_M(M1_RecvData,&len);								//接收
 	if(len>0)																							//应该没有响应
 	{
-		return 1;
+		return 0x0F;
 	}
 	
 	return 0;
@@ -607,11 +607,11 @@ uint8_t Decrement(uint8_t BlockNum,uint8_t* Value)
 uint8_t Increment(uint8_t BlockNum,uint8_t* Value)
 {
 	uint16_t len;
-	uint8_t CMD[2]={0xC1,0x00};														//写命令
+	uint8_t CMD[2]={0xC1,0x00};														//命令
 	uint16_t num;
 	
 	num=BlockNum+1;
-	if(num%4==0)return 3;
+	if(num%4==0)return 1;
 	
 	CMD[1]=BlockNum;
 	THM3070_SetFWT(0x64);																	//超时时间为100*330us=33ms
@@ -620,7 +620,7 @@ uint8_t Increment(uint8_t BlockNum,uint8_t* Value)
 	THM3070_RecvFrame_M(M1_RecvData,&len);
 	if(len!=0x01||M1_RecvData[0]!=0xA0)										//接收判断
 	{
-		return 1;
+		return 4;
 	}
 	
 	THM3070_SetFWT(0x64);																	//超时时间为100*330us=33ms
@@ -629,7 +629,7 @@ uint8_t Increment(uint8_t BlockNum,uint8_t* Value)
 	THM3070_RecvFrame_M(M1_RecvData,&len);								//接收
 	if(len>0)																							//应该没有响应
 	{
-		return 1;
+		return 0x0F;
 	}
 	
 	return 0;
@@ -644,11 +644,11 @@ uint8_t Increment(uint8_t BlockNum,uint8_t* Value)
 uint8_t Transfre(uint8_t BlockNum)
 {
 	uint16_t len;
-	uint8_t CMD[2]={0xB0,0x00};														//写命令
+	uint8_t CMD[2]={0xB0,0x00};														//命令
 	uint16_t num;
 	
 	num=BlockNum+1;
-	if(num%4==0)return 3;
+	if(num%4==0)return 1;
 	
 	CMD[1]=BlockNum;
 	THM3070_SetFWT(0x64);																	//超时时间为100*330us=33ms
@@ -657,7 +657,7 @@ uint8_t Transfre(uint8_t BlockNum)
 	THM3070_RecvFrame_M(M1_RecvData,&len);
 	if(len!=0x01||M1_RecvData[0]!=0xA0)										//接收判断
 	{
-		return 1;
+		return 4;
 	}
 	return 0;
 }
@@ -671,7 +671,7 @@ uint8_t Transfre(uint8_t BlockNum)
 uint8_t Restore(uint8_t BlockNum)
 {
 	uint16_t len;
-	uint8_t CMD[2]={0xC2,0x00};														//写命令
+	uint8_t CMD[2]={0xC2,0x00};														//命令
 	CMD[1]=BlockNum;
 	
 	THM3070_SetFWT(0x64);																	//超时时间为100*330us=33ms
@@ -679,7 +679,7 @@ uint8_t Restore(uint8_t BlockNum)
 	THM3070_RecvFrame_M(M1_RecvData,&len);
 	if(len!=0x01||M1_RecvData[0]!=0xA0)										//接收判断
 	{
-		return 1;
+		return 4;
 	}
 	
 	THM3070_SetFWT(0x64);																	//超时时间为100*330us=33ms
@@ -688,7 +688,7 @@ uint8_t Restore(uint8_t BlockNum)
 	THM3070_RecvFrame_M(M1_RecvData,&len);								//接收
 	if(len>0)																							//应该没有响应
 	{
-		return 1;
+		return 0x0F;
 	}
 	
 	return 0;
