@@ -167,49 +167,49 @@ uint8_t ATTRIB(uint8_t *DAT_ATTRIBAnswer, uint16_t *LEN_ATTRIBAnswer)
     /*调整速率
     if(ISO_ATQB_PLINFO_BAUD!=0x00)                                              //可调速率
     {
-    	uint8_t temp=0x00;
+        uint8_t temp=0x00;
 
-    	if((ISO_ATQB_PLINFO_BAUD&0x40)==0x40)                                   //PICC TO PCD 848kbit/s
-    	{
-    		temp|=0xC0;
-    		RxBuad=0x03;
-    	}
-    	else if((ISO_ATQB_PLINFO_BAUD&0x20)==0x20)                              //PICC TO PCD 424kbit/s
-    	{
-    		temp|=0x80;
-    		RxBuad=0x02;
-    	}
-    	else if((ISO_ATQB_PLINFO_BAUD&0x10)==0x10)                              //PICC TO PCD 212kbit/s
-    	{
-    		temp|=0x40;
-    		RxBuad=0x01;
-    	}
-    	CMD[6]|=temp;                                                           //设置PICC TO PCD速率
+        if((ISO_ATQB_PLINFO_BAUD&0x40)==0x40)                                   //PICC TO PCD 848kbit/s
+        {
+            temp|=0xC0;
+            RxBuad=0x03;
+        }
+        else if((ISO_ATQB_PLINFO_BAUD&0x20)==0x20)                              //PICC TO PCD 424kbit/s
+        {
+            temp|=0x80;
+            RxBuad=0x02;
+        }
+        else if((ISO_ATQB_PLINFO_BAUD&0x10)==0x10)                              //PICC TO PCD 212kbit/s
+        {
+            temp|=0x40;
+            RxBuad=0x01;
+        }
+        CMD[6]|=temp;                                                           //设置PICC TO PCD速率
 
-    	if((ISO_ATQB_PLINFO_BAUD&0x80)==0x80)                                   //发送接收速率相同
-    	{
-    		CMD[6]|=temp>>2;
-    	}
-    	else
-    	{
-    		temp=0x00;
-    		if((ISO_ATQB_PLINFO_BAUD&0x04)==0x04)                               //PCD TO PICC 848kbit/s
-    		{
-    			temp|=0x30;
-    			TxBuad=0x03;
-    		}
-    		else if((ISO_ATQB_PLINFO_BAUD&0x02)==0x02)                          //PCD TO PICC 424kbit/s
-    		{
-    			temp|=0x20;
-    			TxBuad=0x02;
-    		}
-    		else if((ISO_ATQB_PLINFO_BAUD&0x01)==0x01)                          //PCD TO PICC 212kbit/s
-    		{
-    			temp|=0x10;
-    			TxBuad=0x01;
-    		}
-    		CMD[6]|=temp;                                                       //设置PCD TO PICC速率
-    	}
+        if((ISO_ATQB_PLINFO_BAUD&0x80)==0x80)                                   //发送接收速率相同
+        {
+            CMD[6]|=temp>>2;
+        }
+        else
+        {
+            temp=0x00;
+            if((ISO_ATQB_PLINFO_BAUD&0x04)==0x04)                               //PCD TO PICC 848kbit/s
+            {
+                temp|=0x30;
+                TxBuad=0x03;
+            }
+            else if((ISO_ATQB_PLINFO_BAUD&0x02)==0x02)                          //PCD TO PICC 424kbit/s
+            {
+                temp|=0x20;
+                TxBuad=0x02;
+            }
+            else if((ISO_ATQB_PLINFO_BAUD&0x01)==0x01)                          //PCD TO PICC 212kbit/s
+            {
+                temp|=0x10;
+                TxBuad=0x01;
+            }
+            CMD[6]|=temp;                                                       //设置PCD TO PICC速率
+        }
     }
     调整速率*/
     CMD[7] = 0x01;                                                              //支持14443,TR2
@@ -470,7 +470,7 @@ uint8_t AnticollAndSelect(uint8_t *DAT_UID, uint16_t *LEN_UID)
         {
             if((selCode[0] & 0x04) != 0x00)                                     //SAK第3位为1表明UID不完整
             {
-                CASLEVEL += 2;													//进入下一级
+                CASLEVEL += 2;                                                  //进入下一级
                 memcpy(DAT_UID + i * 3, UIDTemp + i * 5 + 1, 3);                //截取出真正UID
             }
             else
