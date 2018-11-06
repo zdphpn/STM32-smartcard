@@ -4,13 +4,13 @@
 
 
 /*
-æ–‡ä»¶ç”¨é€”:           STM32é©±åŠ¨æ¥è§¦å¡
-ä½œè€…:				å¼ æ ‹åŸ¹
-åˆ›å»ºæ—¶é—´:			2018/07/04
-æ›´æ–°æ—¶é—´:			2018/07/04
-ç‰ˆæœ¬:				V1.0
+ÎÄ¼şÓÃÍ¾:           STM32Çı¶¯½Ó´¥¿¨
+×÷Õß:               ÕÅ¶°Åà
+´´½¨Ê±¼ä:           2018/07/04
+¸üĞÂÊ±¼ä:           2018/07/04
+°æ±¾:               V1.0
 
-å†å²ç‰ˆæœ¬:			V1.0:åŸºäºSTM32 USARTå£å®ç°7816 T=0åè®®
+ÀúÊ·°æ±¾:           V1.0:»ùÓÚSTM32 USART¿ÚÊµÏÖ7816 T=0Ğ­Òé
 
 
 */
@@ -18,732 +18,734 @@
 
 
 
-/*å¤ä½å¼•è„š*/
-#define STM_RST_H	GPIO_SetBits(STM_RST_GPIOx,STM_RST_Pinx)
-#define STM_RST_L	GPIO_ResetBits(STM_RST_GPIOx,STM_RST_Pinx)
+/*¸´Î»Òı½Å*/
+#define STM_RST_H    GPIO_SetBits(STM_RST_GPIOx,STM_RST_Pinx)
+#define STM_RST_L    GPIO_ResetBits(STM_RST_GPIOx,STM_RST_Pinx)
 
 
 
-uint8_t STM_ATR[40];											//å­˜å‚¨ä¸€ä¸ªATR
-uint8_t ATR_TA1=0x00;											//å¡ATRä¸­TA1çš„å€¼,TA1åŒ…å«FD
-uint8_t STM_T1=0;												//å¡æ˜¯å¦ä¸ºT=1
+uint8_t STM_ATR[40];                                                            //´æ´¢Ò»¸öATR
+uint8_t ATR_TA1 = 0x00;                                                         //¿¨ATRÖĞTA1µÄÖµ,TA1°üº¬FD
+uint8_t STM_T1 = 0;                                                             //¿¨ÊÇ·ñÎªT=1
 
-uint32_t STM_WT=9600;											//é€šä¿¡è¶…æ—¶æ—¶é—´WT
+uint32_t STM_WT = 9600;                                                         //Í¨ĞÅ³¬Ê±Ê±¼äWT
 
-uint8_t STM_F=1;												//F
-uint8_t STM_D=1;												//D
-uint32_t STM_ClkHz=3600000;										//é¢‘ç‡4.5MHz
+uint8_t STM_F = 1;                                                              //F
+uint8_t STM_D = 1;                                                              //D
+uint32_t STM_ClkHz = 3600000;                                                   //ÆµÂÊ3.6MHz
 
-uint16_t STM_DelayMS=0;											//è¶…æ—¶è®¡æ•°
+uint16_t STM_DelayMS = 0;                                                       //³¬Ê±¼ÆÊı
 
-																//FDè¡¨
-static const uint16_t F_Table[16]={372,372,558,744,1116,1488,1860,372,372,512,768,1024,1536,2048,372,372};
-static const uint8_t D_Table[16]={1,1,2,4,8,16,32,64,12,20,1,1,1,1,1,1};
+                                                                                //FD±í
+static const uint16_t F_Table[16] = {372, 372, 558, 744, 1116, 1488, 1860, 372, 372, 512, 768, 1024, 1536, 2048, 372, 372};
+static const uint8_t D_Table[16] = {1, 1, 2, 4, 8, 16, 32, 64, 12, 20, 1, 1, 1, 1, 1, 1};
 
 
 /*
-åŠŸèƒ½ï¼š	STM7816å£åˆå§‹åŒ–
-å‚æ•°ï¼š	æ— 
-è¿”å›ï¼š	æ— 
+¹¦ÄÜ£º  STM7816¿Ú³õÊ¼»¯
+²ÎÊı£º  ÎŞ
+·µ»Ø£º  ÎŞ
 */
 void STM7816_Init(void)
 {
-	GPIO_InitTypeDef GPIO_InitStructure;
-	USART_InitTypeDef USART_InitStructure;
-	USART_ClockInitTypeDef USART_ClockInitStructure;
-	
-	STM_RCC_APBxPeriphClockCmd;
-	
-	GPIO_InitStructure.GPIO_Pin=STM_CLK_Pinx;					//CLKå¤ç”¨
-	GPIO_InitStructure.GPIO_Mode=GPIO_Mode_AF_PP;
-	GPIO_InitStructure.GPIO_Speed=GPIO_Speed_50MHz;
-	GPIO_Init(STM_CLK_GPIOx,&GPIO_InitStructure);
+    GPIO_InitTypeDef GPIO_InitStructure;
+    USART_InitTypeDef USART_InitStructure;
+    USART_ClockInitTypeDef USART_ClockInitStructure;
 
-	GPIO_InitStructure.GPIO_Pin=STM_IO_Pinx;					//IOå¤ç”¨
-	GPIO_InitStructure.GPIO_Mode=GPIO_Mode_AF_OD;
-	GPIO_InitStructure.GPIO_Speed=GPIO_Speed_50MHz;
-	GPIO_Init(STM_IO_GPIOx,&GPIO_InitStructure);
+    STM_RCC_APBxPeriphClockCmd;
 
-	GPIO_InitStructure.GPIO_Pin = STM_RST_Pinx;					//å¤ä½è¾“å‡º
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_Init(STM_RST_GPIOx, &GPIO_InitStructure);
-	
-	GPIO_InitStructure.GPIO_Pin = STM_VCC_Pinx;					//ä¾›ç”µè¾“å‡º
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_Init(STM_VCC_GPIOx, &GPIO_InitStructure);
-	STM7816_SetVCC(1);											//ä¸Šç”µ
-	
-	
-	USART_SetGuardTime(STM_USARTx,12);							//ä¿æŠ¤æ—¶é—´
-	
-	USART_ClockInitStructure.USART_Clock=USART_Clock_Enable;
-	USART_ClockInitStructure.USART_CPOL=USART_CPOL_Low;
-	USART_ClockInitStructure.USART_CPHA=USART_CPHA_1Edge;
-	USART_ClockInitStructure.USART_LastBit=USART_LastBit_Enable;
-	USART_ClockInit(STM_USARTx,&USART_ClockInitStructure);
-	
-	STM7816_SetClkHz(STM_ClkHz);								//è®¾ç½®CLKé¢‘ç‡
+    GPIO_InitStructure.GPIO_Pin = STM_CLK_Pinx;                                 //CLK¸´ÓÃ
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(STM_CLK_GPIOx, &GPIO_InitStructure);
 
-	USART_InitStructure.USART_BaudRate=9677;
-	USART_InitStructure.USART_WordLength=USART_WordLength_9b;
-	USART_InitStructure.USART_StopBits=USART_StopBits_1_5;
-	USART_InitStructure.USART_Parity=USART_Parity_Even;
-	USART_InitStructure.USART_Mode=USART_Mode_Rx|USART_Mode_Tx;
-	USART_InitStructure.USART_HardwareFlowControl=USART_HardwareFlowControl_None;
-	USART_Init(STM_USARTx,&USART_InitStructure);
-	
-	STM7816_SetFD(STM_F,STM_D);									//è®¾ç½®FD
+    GPIO_InitStructure.GPIO_Pin = STM_IO_Pinx;                                  //IO¸´ÓÃ
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_OD;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(STM_IO_GPIOx, &GPIO_InitStructure);
 
-	USART_Cmd(STM_USARTx,ENABLE);
-	USART_SmartCardNACKCmd(STM_USARTx,ENABLE);
-	USART_SmartCardCmd(STM_USARTx,ENABLE);
+    GPIO_InitStructure.GPIO_Pin = STM_RST_Pinx;                                 //¸´Î»Êä³ö
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(STM_RST_GPIOx, &GPIO_InitStructure);
 
-	
+    GPIO_InitStructure.GPIO_Pin = STM_VCC_Pinx;                                 //¹©µçÊä³ö
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(STM_VCC_GPIOx, &GPIO_InitStructure);
+    STM7816_SetVCC(1);                                                          //ÉÏµç
+
+
+    USART_SetGuardTime(STM_USARTx, 12);                                         //±£»¤Ê±¼ä
+
+    USART_ClockInitStructure.USART_Clock = USART_Clock_Enable;
+    USART_ClockInitStructure.USART_CPOL = USART_CPOL_Low;
+    USART_ClockInitStructure.USART_CPHA = USART_CPHA_1Edge;
+    USART_ClockInitStructure.USART_LastBit = USART_LastBit_Enable;
+    USART_ClockInit(STM_USARTx, &USART_ClockInitStructure);
+
+    STM7816_SetClkHz(STM_ClkHz);                                                //ÉèÖÃCLKÆµÂÊ
+
+    USART_InitStructure.USART_BaudRate = 9677;
+    USART_InitStructure.USART_WordLength = USART_WordLength_9b;
+    USART_InitStructure.USART_StopBits = USART_StopBits_1_5;
+    USART_InitStructure.USART_Parity = USART_Parity_Even;
+    USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
+    USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+    USART_Init(STM_USARTx, &USART_InitStructure);
+
+    STM7816_SetFD(STM_F, STM_D);                                                //ÉèÖÃFD
+
+    USART_Cmd(STM_USARTx, ENABLE);
+    USART_SmartCardNACKCmd(STM_USARTx, ENABLE);
+    USART_SmartCardCmd(STM_USARTx, ENABLE);
+
+
 }
 
 /*
-åŠŸèƒ½ï¼š	è¶…æ—¶è®¡æ•°å®šæ—¶ä¸­æ–­(1MSä¸­æ–­)
-å‚æ•°ï¼š	æ— 
-è¿”å›ï¼š	æ— 
+¹¦ÄÜ£º  ³¬Ê±¼ÆÊı¶¨Ê±ÖĞ¶Ï(1MSÖĞ¶Ï)
+²ÎÊı£º  ÎŞ
+·µ»Ø£º  ÎŞ
 */
 void STM7816_TIMxInt(void)
 {
-	if(STM_DelayMS>0)											//è®¡æ•°æ—¶é—´>0
-	{
-		STM_DelayMS--;											//
-	}
+    if(STM_DelayMS > 0)                                                         //¼ÆÊıÊ±¼ä>0
+    {
+        STM_DelayMS--;                                                          //
+    }
 }
 
 /*
-åŠŸèƒ½ï¼š	STM7816å£è®¾ç½®é¢‘ç‡
-å‚æ•°ï¼š	é¢‘ç‡,=0ä¸ºå…³æ—¶é’Ÿ
-è¿”å›ï¼š	æ— 
+¹¦ÄÜ£º  STM7816¿ÚÉèÖÃÆµÂÊ
+²ÎÊı£º  ÆµÂÊ,=0Îª¹ØÊ±ÖÓ
+·µ»Ø£º  ÎŞ
 */
 void STM7816_SetClkHz(uint32_t hz)
 {
-	uint32_t apbclock=0x00;
-	uint32_t usartxbase=0;
-	RCC_ClocksTypeDef RCC_ClocksStatus;
-	
-	if(hz==0)
-	{
-		STM_USARTx->CR2&=~0x00000800;							//å…³æ—¶é’Ÿ
-		
-		return;
-	}
-	
-	usartxbase=(uint32_t)STM_USARTx;
-	RCC_GetClocksFreq(&RCC_ClocksStatus);
-	if (usartxbase==USART1_BASE)
-	{
-		apbclock=RCC_ClocksStatus.PCLK2_Frequency;
-	}
-	else
-	{
-		apbclock=RCC_ClocksStatus.PCLK1_Frequency;
-	}
-	
-	apbclock/=hz;												//æ ¹æ®ä¸²å£çš„é¢‘ç‡è®¡ç®—åˆ†é¢‘æ¯”
-	apbclock/=2;
-	if(apbclock<1)apbclock=1;
-  
-	USART_SetPrescaler(STM_USARTx,apbclock);					//è®¾ç½®åˆ†é¢‘
-	STM_USARTx->CR2|=0x00000800;								//å¼€æ—¶é’Ÿ
-	
+    uint32_t apbclock = 0x00;
+    uint32_t usartxbase = 0;
+    RCC_ClocksTypeDef RCC_ClocksStatus;
+
+    if(hz == 0)
+    {
+        STM_USARTx->CR2 &= ~0x00000800;                                         //¹ØÊ±ÖÓ
+
+        return;
+    }
+
+    usartxbase = (uint32_t)STM_USARTx;
+    RCC_GetClocksFreq(&RCC_ClocksStatus);
+    if (usartxbase == USART1_BASE)
+    {
+        apbclock = RCC_ClocksStatus.PCLK2_Frequency;
+    }
+    else
+    {
+        apbclock = RCC_ClocksStatus.PCLK1_Frequency;
+    }
+
+    apbclock /= hz;                                                             //¸ù¾İ´®¿ÚµÄÆµÂÊ¼ÆËã·ÖÆµ±È
+    apbclock /= 2;
+    if(apbclock < 1)apbclock = 1;
+
+    USART_SetPrescaler(STM_USARTx, apbclock);                                   //ÉèÖÃ·ÖÆµ
+    STM_USARTx->CR2 |= 0x00000800;                                              //¿ªÊ±ÖÓ
+
 }
 
 
 /*
-åŠŸèƒ½ï¼š	STM7816å£è®¾ç½®FD
-å‚æ•°ï¼š	FDçš„è¡¨æ ¼ç´¢å¼•å€¼
-è¿”å›ï¼š	æ— 
+¹¦ÄÜ£º  STM7816¿ÚÉèÖÃFD
+²ÎÊı£º  FDµÄ±í¸ñË÷ÒıÖµ
+·µ»Ø£º  ÎŞ
 */
-void STM7816_SetFD(uint8_t F,uint8_t D)
+void STM7816_SetFD(uint8_t F, uint8_t D)
 {
-	uint32_t etudiv;
-	
-	etudiv=STM_USARTx->GTPR&0x0000001F;							//è·å–æ—¶é’Ÿåˆ†é¢‘æ•°
-	etudiv=2*etudiv*F_Table[F]/D_Table[D];						//æ³¢ç‰¹æ¯”ç‡=((æ—¶é’Ÿåˆ†é¢‘*2)*F)/D
-	
-	STM_USARTx->BRR=etudiv;
+    uint32_t etudiv;
+
+    etudiv = STM_USARTx->GTPR & 0x0000001F;                                     //»ñÈ¡Ê±ÖÓ·ÖÆµÊı
+    etudiv = 2 * etudiv * F_Table[F] / D_Table[D];                              //²¨ÌØ±ÈÂÊ=((Ê±ÖÓ·ÖÆµ*2)*F)/D
+
+    STM_USARTx->BRR = etudiv;
 }
 
 /*
-åŠŸèƒ½ï¼š	STM7816æ¥å£è®¾ç½®é€šä¿¡è¶…æ—¶æ—¶é—´
-å‚æ•°ï¼š	è¶…æ—¶æ—¶é—´(å•ä½ETU)
-è¿”å›ï¼š	æ— 
+¹¦ÄÜ£º  STM7816½Ó¿ÚÉèÖÃÍ¨ĞÅ³¬Ê±Ê±¼ä
+²ÎÊı£º  ³¬Ê±Ê±¼ä(µ¥Î»ETU)
+·µ»Ø£º  ÎŞ
 */
 void STM7816_SetWT(uint32_t wt)
 {
-	STM_WT=wt;
+    STM_WT = wt;
 }
 
 /*
-åŠŸèƒ½ï¼š	ä¸²å£æ¥æ”¶ä¸€ä¸ªå­—èŠ‚æ•°æ®
-å‚æ•°ï¼š	æ•°æ®,è¶…æ—¶æ—¶é—´(å•ä½MS)
-è¿”å›ï¼š	1è¶…æ—¶é”™è¯¯,0æˆåŠŸ
+¹¦ÄÜ£º  ´®¿Ú½ÓÊÕÒ»¸ö×Ö½ÚÊı¾İ
+²ÎÊı£º  Êı¾İ,³¬Ê±Ê±¼ä(µ¥Î»MS)
+·µ»Ø£º  1³¬Ê±´íÎó,0³É¹¦
 */
-static uint8_t USART_RecvByte(uint8_t* dat,uint16_t overMs)
+static uint8_t USART_RecvByte(uint8_t *dat, uint16_t overMs)
 {
-	STM_DelayMS=overMs+1;										//è®¾ç½®è¶…æ—¶æ—¶é—´,+1é¿å…1msè¯¯å·®
-	while(STM_DelayMS)											//æ—¶é—´å†…
-	{															//æ¥æ”¶åˆ°æ•°æ®
-		if(RESET!=USART_GetFlagStatus(STM_USARTx,USART_FLAG_RXNE))
-		{
-			*dat=(uint8_t)USART_ReceiveData(STM_USARTx);
-			break;
-		}
-	}
-	overMs=STM_DelayMS==0;										//æ˜¯å¦è¶…æ—¶
-	STM_DelayMS=0;
-	
-	return overMs;												//è¿”å›
+    STM_DelayMS = overMs + 1;                                                   //ÉèÖÃ³¬Ê±Ê±¼ä,+1±ÜÃâ1msÎó²î
+    while(STM_DelayMS)                                                          //Ê±¼äÄÚ
+    {
+        //½ÓÊÕµ½Êı¾İ
+        if(RESET != USART_GetFlagStatus(STM_USARTx, USART_FLAG_RXNE))
+        {
+            *dat = (uint8_t)USART_ReceiveData(STM_USARTx);
+            break;
+        }
+    }
+    overMs = STM_DelayMS == 0;                                                  //ÊÇ·ñ³¬Ê±
+    STM_DelayMS = 0;
+
+    return overMs;                                                              //·µ»Ø
 }
 
 /*
-åŠŸèƒ½ï¼š	ä¸²å£å‘é€ä¸€ä¸ªå­—èŠ‚æ•°æ®
-å‚æ•°ï¼š	æ•°æ®
-è¿”å›ï¼š	æ— 
+¹¦ÄÜ£º  ´®¿Ú·¢ËÍÒ»¸ö×Ö½ÚÊı¾İ
+²ÎÊı£º  Êı¾İ
+·µ»Ø£º  ÎŞ
 */
 static void USART_SendByte(uint8_t dat)
 {
-	USART_ClearFlag(STM_USARTx,USART_FLAG_TC);					//æ¸…å‘é€æ ‡è¯†
-	USART_SendData(STM_USARTx,dat);								//å‘é€
-	while(USART_GetFlagStatus(STM_USARTx,USART_FLAG_TC)==RESET);
-//	while(USART_GetFlagStatus(STM_USARTx,USART_FLAG_RXNE)==RESET);//æ²¡å¡çš„æ—¶å€™ä¼šä¸€ç›´ç­‰å¾…
-	(void)USART_ReceiveData(STM_USARTx);						//ä¸ºä»€ä¹ˆè¦æ¥æ”¶?
+    USART_ClearFlag(STM_USARTx, USART_FLAG_TC);                                 //Çå·¢ËÍ±êÊ¶
+    USART_SendData(STM_USARTx, dat);                                            //·¢ËÍ
+    while(USART_GetFlagStatus(STM_USARTx, USART_FLAG_TC) == RESET);
+    //while(USART_GetFlagStatus(STM_USARTx,USART_FLAG_RXNE)==RESET);            //Ã»¿¨µÄÊ±ºò»áÒ»Ö±µÈ´ı
+    (void)USART_ReceiveData(STM_USARTx);                                        //ÎªÊ²Ã´Òª½ÓÊÕ?
 }
 /*
-åŠŸèƒ½ï¼š	CLKåˆ°MSè½¬æ¢,å†…éƒ¨å‡½æ•°
-å‚æ•°ï¼š	CLK,1è¿›ä¸€/0èˆå»
-è¿”å›ï¼š	è½¬æ¢åçš„MSå€¼
+¹¦ÄÜ£º  CLKµ½MS×ª»»,ÄÚ²¿º¯Êı
+²ÎÊı£º  CLK,1½øÒ»/0ÉáÈ¥
+·µ»Ø£º  ×ª»»ºóµÄMSÖµ
 */
-static uint16_t CLKToMS(uint32_t clk,uint8_t half)
+static uint16_t CLKToMS(uint32_t clk, uint8_t half)
 {
-	uint16_t temp;
-	
-	temp=clk/(STM_ClkHz/1000);									//å€æ•°
-	clk=clk%(STM_ClkHz/1000);									//ä½™æ•°
-	
-	if(half&&clk)												//æœ‰ä½™æ•°å¹¶ä¸”è¿›ä¸€
-	{
-		temp+=1;												//è¿›ä¸€
-	}
-	return temp;												//è¿”å›
+    uint16_t temp;
+
+    temp = clk / (STM_ClkHz / 1000);                                           //±¶Êı
+    clk = clk % (STM_ClkHz / 1000);                                            //ÓàÊı
+
+    if(half && clk)                                                            //ÓĞÓàÊı²¢ÇÒ½øÒ»
+    {
+        temp += 1;                                                             //½øÒ»
+    }
+    return temp;                                                               //·µ»Ø
 }
 /*
-åŠŸèƒ½ï¼š	CLKåˆ°USè½¬æ¢,å†…éƒ¨å‡½æ•°
-å‚æ•°ï¼š	CLK,1è¿›ä¸€/0èˆå»
-è¿”å›ï¼š	è½¬æ¢åçš„USå€¼
+¹¦ÄÜ£º  CLKµ½US×ª»»,ÄÚ²¿º¯Êı
+²ÎÊı£º  CLK,1½øÒ»/0ÉáÈ¥
+·µ»Ø£º  ×ª»»ºóµÄUSÖµ
 */
-static uint16_t CLKToUS(uint32_t clk,uint8_t half)
+static uint16_t CLKToUS(uint32_t clk, uint8_t half)
 {
-	uint16_t temp;
-	
-	clk*=1000;
-	temp=clk/(STM_ClkHz/1000);									//å€æ•°
-	clk=clk%(STM_ClkHz/1000);									//ä½™æ•°
-	
-	if(half&&clk)												//æœ‰ä½™æ•°å¹¶ä¸”è¿›ä¸€
-	{
-		temp+=1;												//è¿›ä¸€
-	}
-	return temp;												//è¿”å›
+    uint16_t temp;
+
+    clk *= 1000;
+    temp = clk / (STM_ClkHz / 1000);                                            //±¶Êı
+    clk = clk % (STM_ClkHz / 1000);                                             //ÓàÊı
+
+    if(half && clk)                                                             //ÓĞÓàÊı²¢ÇÒ½øÒ»
+    {
+        temp += 1;                                                              //½øÒ»
+    }
+    return temp;                                                                //·µ»Ø
 }
 /*
-åŠŸèƒ½ï¼š	ETUåˆ°MSè½¬æ¢,å†…éƒ¨å‡½æ•°
-å‚æ•°ï¼š	ETU,1è¿›ä¸€/0èˆå»
-è¿”å›ï¼š	è½¬æ¢åçš„MSå€¼
+¹¦ÄÜ£º  ETUµ½MS×ª»»,ÄÚ²¿º¯Êı
+²ÎÊı£º  ETU,1½øÒ»/0ÉáÈ¥
+·µ»Ø£º  ×ª»»ºóµÄMSÖµ
 */
-static uint16_t ETUToMS(uint32_t etu,uint8_t half)
+static uint16_t ETUToMS(uint32_t etu, uint8_t half)
 {
-	uint16_t temp;
-	
-	etu*=(F_Table[STM_F]/D_Table[STM_D]);
-	temp=etu/(STM_ClkHz/1000);									//å€æ•°
-	etu=etu%(STM_ClkHz/1000);									//ä½™æ•°
-	
-	if(half&&etu)												//æœ‰ä½™æ•°å¹¶ä¸”è¿›ä¸€
-	{
-		temp+=1;												//è¿›ä¸€
-	}
-	return temp;												//è¿”å›
+    uint16_t temp;
+
+    etu *= (F_Table[STM_F] / D_Table[STM_D]);
+    temp = etu / (STM_ClkHz / 1000);                                            //±¶Êı
+    etu = etu % (STM_ClkHz / 1000);                                             //ÓàÊı
+
+    if(half && etu)                                                             //ÓĞÓàÊı²¢ÇÒ½øÒ»
+    {
+        temp += 1;                                                              //½øÒ»
+    }
+    return temp;                                                                //·µ»Ø
 }
 
 /*
-åŠŸèƒ½ï¼š	è®¡ç®—ä¸€ä¸ªæ•°ä¸­1(2è¿›åˆ¶)çš„ä¸ªæ•°,å†…éƒ¨å‡½æ•°
-å‚æ•°ï¼š	æ•°æ®
-è¿”å›ï¼š	1çš„ä¸ªæ•°
+¹¦ÄÜ£º  ¼ÆËãÒ»¸öÊıÖĞ1(2½øÖÆ)µÄ¸öÊı,ÄÚ²¿º¯Êı
+²ÎÊı£º  Êı¾İ
+·µ»Ø£º  1µÄ¸öÊı
 */
 static uint8_t NumberOf1_Solution1(uint32_t num)
 {
-	uint8_t count=0;
-	while(num)
-	{
-		if(num&0x01)
-		{
-			count++;
-		}
-		num=num>>1;
-	}
-	return count;
+    uint8_t count = 0;
+    while(num)
+    {
+        if(num & 0x01)
+        {
+            count++;
+        }
+        num = num >> 1;
+    }
+    return count;
 }
 
 /*
-åŠŸèƒ½ï¼š	é¢„æµ‹ATRçš„çœŸæ­£é•¿åº¦,å†…éƒ¨å‡½æ•°
-å‚æ•°ï¼š	å·²çŸ¥çš„ATRæ•°æ®åŠé•¿åº¦
-è¿”å›ï¼š	ATRçš„çœŸæ­£é•¿åº¦
+¹¦ÄÜ£º  Ô¤²âATRµÄÕæÕı³¤¶È,ÄÚ²¿º¯Êı
+²ÎÊı£º  ÒÑÖªµÄATRÊı¾İ¼°³¤¶È
+·µ»Ø£º  ATRµÄÕæÕı³¤¶È
 */
-uint8_t foreATRLen(uint8_t* atr,uint8_t len)
+uint8_t foreATRLen(uint8_t *atr, uint8_t len)
 {
-	uint8_t len1=2,len2=2,next=1,temp=1,TD2;
-	
-	STM_T1=0;													//é»˜è®¤T=0
-	ATR_TA1=0;													//TA1æ¸…é›¶
-	if(len<len2)												//æ•°æ®é‡å¤ªå°
-	{
-		return 0xFF;
-	}
-	while(next)
-	{
-		next=0;
-		if((atr[len2-1]&0x80)==0x80)							//TDiå­˜åœ¨
-		{
-			next=1;												//è¿›å…¥ä¸‹è½®å¾ªç¯
-			len1++;
-		}
-		if((atr[len2-1]&0x40)==0x40)							//TCiå­˜åœ¨
-		{
-			len1++;
-		}
-		if((atr[len2-1]&0x20)==0x20)							//TBiå­˜åœ¨
-		{
-			len1++;
-		}
-		if((atr[len2-1]&0x10)==0x10)							//TAiå­˜åœ¨
-		{
-			len1++;
-			
-			if(len2==2)											//TA1å­˜åœ¨
-			{
-				ATR_TA1=atr[2];									//è®°å½•TA1
-			}
-		}
-		len2=len1;
-		if(len<len2)											//æ•°æ®é‡å¤ªå°
-		{
-			return 0xFF;
-		}
-	}
-	len1+=(atr[1]&0x0F);										//åŠ ä¸Šå†å²å­—èŠ‚é•¿åº¦
+    uint8_t len1 = 2, len2 = 2, next = 1, temp = 1, TD2;
 
-	if(atr[1]&0x80)												//TD1å­˜åœ¨
-	{
-		temp+=NumberOf1_Solution1(atr[1]&0xF0);					//é€šè¿‡åˆ¤æ–­1çš„ä½æ•°,æ‰¾åˆ°TD1çš„ç´¢å¼•
-		if((atr[temp]&0x0F)==0x01)								//TD1ä½ä½ä¸º1,åˆ™ä¸ºT=1å¡
-		{
-			STM_T1=1;
-		}
-		if(atr[temp]&0x80)										//åˆ¤æ–­TD2æ˜¯å¦å­˜åœ¨
-		{
-			STM_T1=1;											//å­˜åœ¨ä¸€å®šæ˜¯T=1
-			temp+=NumberOf1_Solution1(atr[temp]&0xF0);			//é€šè¿‡åˆ¤æ–­1çš„ä½æ•°,æ‰¾åˆ°TD2çš„ç´¢å¼•
-			TD2=temp;
-			if((atr[TD2]&0x30)==0x30)
-			{
-				STM_T1=1;
-			}
-			else if((atr[TD2]&0xF0)==0x00&&(atr[TD2]&0x0F)==0x01)
-			{
-				STM_T1=1;
-			}
-		}
-	}
-	if(STM_T1)													//T=1ATRæœ€åæœ‰1å­—èŠ‚æ ¡éªŒ
-	{
-		len1++;
-	}
-	return len1;												//è¿”å›é¢„æµ‹çš„ATRé•¿åº¦å€¼
+    STM_T1 = 0;                                                                 //Ä¬ÈÏT=0
+    ATR_TA1 = 0;                                                                //TA1ÇåÁã
+    if(len < len2)                                                              //Êı¾İÁ¿Ì«Ğ¡
+    {
+        return 0xFF;
+    }
+    while(next)
+    {
+        next = 0;
+        if((atr[len2 - 1] & 0x80) == 0x80)                                      //TDi´æÔÚ
+        {
+            next = 1;                                                           //½øÈëÏÂÂÖÑ­»·
+            len1++;
+        }
+        if((atr[len2 - 1] & 0x40) == 0x40)                                      //TCi´æÔÚ
+        {
+            len1++;
+        }
+        if((atr[len2 - 1] & 0x20) == 0x20)                                      //TBi´æÔÚ
+        {
+            len1++;
+        }
+        if((atr[len2 - 1] & 0x10) == 0x10)                                      //TAi´æÔÚ
+        {
+            len1++;
+
+            if(len2 == 2)                                                       //TA1´æÔÚ
+            {
+                ATR_TA1 = atr[2];                                               //¼ÇÂ¼TA1
+            }
+        }
+        len2 = len1;
+        if(len < len2)                                                          //Êı¾İÁ¿Ì«Ğ¡
+        {
+            return 0xFF;
+        }
+    }
+    len1 += (atr[1] & 0x0F);                                                    //¼ÓÉÏÀúÊ·×Ö½Ú³¤¶È
+
+    if(atr[1] & 0x80)                                                           //TD1´æÔÚ
+    {
+        temp += NumberOf1_Solution1(atr[1] & 0xF0);                             //Í¨¹ıÅĞ¶Ï1µÄÎ»Êı,ÕÒµ½TD1µÄË÷Òı
+        if((atr[temp] & 0x0F) == 0x01)                                          //TD1µÍÎ»Îª1,ÔòÎªT=1¿¨
+        {
+            STM_T1 = 1;
+        }
+        if(atr[temp] & 0x80)                                                    //ÅĞ¶ÏTD2ÊÇ·ñ´æÔÚ
+        {
+            STM_T1 = 1;                                                         //´æÔÚÒ»¶¨ÊÇT=1
+            temp += NumberOf1_Solution1(atr[temp] & 0xF0);                      //Í¨¹ıÅĞ¶Ï1µÄÎ»Êı,ÕÒµ½TD2µÄË÷Òı
+            TD2 = temp;
+            if((atr[TD2] & 0x30) == 0x30)
+            {
+                STM_T1 = 1;
+            }
+            else if((atr[TD2] & 0xF0) == 0x00 && (atr[TD2] & 0x0F) == 0x01)
+            {
+                STM_T1 = 1;
+            }
+        }
+    }
+    if(STM_T1)                                                                  //T=1ATR×îºóÓĞ1×Ö½ÚĞ£Ñé
+    {
+        len1++;
+    }
+    return len1;                                                                //·µ»ØÔ¤²âµÄATR³¤¶ÈÖµ
 }
 
 /*
-åŠŸèƒ½ï¼š	çƒ­å¤ä½
-å‚æ•°ï¼š	ATR,ATRé•¿åº¦
-è¿”å›ï¼š	1è¶…æ—¶,0æˆåŠŸ
+¹¦ÄÜ£º  ÈÈ¸´Î»
+²ÎÊı£º  ATR,ATR³¤¶È
+·µ»Ø£º  1³¬Ê±,0³É¹¦
 */
-uint8_t WarmReset(uint8_t* atr,uint16_t* len)
-{	
-	uint8_t i,err;
-	uint16_t overTim;
-	
-	USART_RecvByte(&i,1);										//æŠŠæ— ç”¨çš„æ•°æ®æ¸…æ‰
-	
-	STM_WT=9600;												//æ¢å¤åˆå§‹å€¼
-	STM_F=1;
-	STM_D=1;
-	*len=0;
-	
-	STM7816_SetFD(STM_F,STM_D);									//æ¢å¤æ³¢ç‰¹ç‡
-	
-	STM_RST_L;													//å¤ä½è„šæ‹‰ä½
-	overTim=CLKToUS(500,1);										//CLKåˆ°US,è¿›ä¸€ä¿è¯å¤§äº
-	delay_us(overTim);											//ç­‰å¾…è‡³å°‘400ä¸ªæ—¶é’Ÿ
-	
-	STM_RST_H;													//å¤ä½è„šæ‹‰é«˜
-	overTim=CLKToUS(300,0);										//CLKåˆ°US,ä¸è¿›ä¸€ä¿è¯å°äº
-	delay_us(overTim);											//ç­‰å¾…æœ€å¤š400ä¸ªæ—¶é’Ÿ
-	
-	for(i=0;i<sizeof(STM_ATR);i++)								//å¾ªç¯æ¥æ”¶ATR
-	{
-		if(i==0)
-		{
-			overTim=CLKToMS(40000,1);							//ç¬¬ä¸€ä¸ªå­—èŠ‚è¿”å›æ—¶é—´åœ¨400-40000ä¸ªæ—¶é’Ÿå†…
-		}
-		else
-		{
-			overTim=ETUToMS(STM_WT*D_Table[STM_D],1);			//å…¶ä½™å­—èŠ‚æŒ‰è¶…æ—¶æ—¶é—´
-		}
-		err=USART_RecvByte(STM_ATR+i,overTim);					//åœ¨è¶…æ—¶æ—¶é—´å†…æ¥æ”¶ä¸€å­—èŠ‚
-		if(!err)												//æ¥æ”¶åˆ°
-		{
-			uint8_t atrLen;
-			
-			(*len)++;
-			atrLen=foreATRLen(STM_ATR,*len);
-			if(atrLen==*len)
-			{
-				break;
-			}
-		}
-		else													//è¶…æ—¶
-		{
-			err=i==0;
-			break;
-		}
-	}
-	memcpy(atr,STM_ATR,*len);									//æ‹·è´ATRæ•°æ®
-	
-	
-	return err;
+uint8_t WarmReset(uint8_t *atr, uint16_t *len)
+{
+    uint8_t i, err;
+    uint16_t overTim;
+
+    USART_RecvByte(&i, 1);                                                      //°ÑÎŞÓÃµÄÊı¾İÇåµô
+
+    STM_WT = 9600;                                                              //»Ö¸´³õÊ¼Öµ
+    STM_F = 1;
+    STM_D = 1;
+    *len = 0;
+
+    STM7816_SetFD(STM_F, STM_D);                                                //»Ö¸´²¨ÌØÂÊ
+
+    STM_RST_L;                                                                  //¸´Î»½ÅÀ­µÍ
+    overTim = CLKToUS(500, 1);                                                  //CLKµ½US,½øÒ»±£Ö¤´óÓÚ
+    delay_us(overTim);                                                          //µÈ´ıÖÁÉÙ400¸öÊ±ÖÓ
+
+    STM_RST_H;                                                                  //¸´Î»½ÅÀ­¸ß
+    overTim = CLKToUS(300, 0);                                                  //CLKµ½US,²»½øÒ»±£Ö¤Ğ¡ÓÚ
+    delay_us(overTim);                                                          //µÈ´ı×î¶à400¸öÊ±ÖÓ
+
+    for(i = 0; i < sizeof(STM_ATR); i++)                                        //Ñ­»·½ÓÊÕATR
+    {
+        if(i == 0)
+        {
+            overTim = CLKToMS(40000, 1);                                        //µÚÒ»¸ö×Ö½Ú·µ»ØÊ±¼äÔÚ400-40000¸öÊ±ÖÓÄÚ
+        }
+        else
+        {
+            overTim = ETUToMS(STM_WT * D_Table[STM_D], 1);                      //ÆäÓà×Ö½Ú°´³¬Ê±Ê±¼ä
+        }
+        err = USART_RecvByte(STM_ATR + i, overTim);                             //ÔÚ³¬Ê±Ê±¼äÄÚ½ÓÊÕÒ»×Ö½Ú
+        if(!err)                                                                //½ÓÊÕµ½
+        {
+            uint8_t atrLen;
+
+            (*len)++;
+            atrLen = foreATRLen(STM_ATR, *len);
+            if(atrLen == *len)
+            {
+                break;
+            }
+        }
+        else                                                                    //³¬Ê±
+        {
+            err = i == 0;
+            break;
+        }
+    }
+    memcpy(atr, STM_ATR, *len);                                                 //¿½±´ATRÊı¾İ
+
+
+    return err;
 }
 
 /*
-åŠŸèƒ½ï¼š	è®¾ç½®IOå£çŠ¶æ€,å†…éƒ¨å‡½æ•°
-å‚æ•°ï¼š	1å¼€/0å…³
-è¿”å›ï¼š	æ— 
+¹¦ÄÜ£º  ÉèÖÃIO¿Ú×´Ì¬,ÄÚ²¿º¯Êı
+²ÎÊı£º  1¿ª/0¹Ø
+·µ»Ø£º  ÎŞ
 */
 static void setIOState(uint8_t on)
 {
-	GPIO_InitTypeDef GPIO_InitStructure;
+    GPIO_InitTypeDef GPIO_InitStructure;
 
-	if(on)
-	{
-		GPIO_InitStructure.GPIO_Pin=STM_IO_Pinx;				//IOå¤ç”¨
-		GPIO_InitStructure.GPIO_Mode=GPIO_Mode_AF_OD;
-		GPIO_InitStructure.GPIO_Speed=GPIO_Speed_50MHz;
-		GPIO_Init(STM_IO_GPIOx,&GPIO_InitStructure);
-	}
-	else
-	{
-		GPIO_InitStructure.GPIO_Pin=STM_IO_Pinx;				//IOè¾“å‡º
-		GPIO_InitStructure.GPIO_Mode=GPIO_Mode_Out_PP;
-		GPIO_InitStructure.GPIO_Speed=GPIO_Speed_50MHz;
-		GPIO_Init(STM_IO_GPIOx,&GPIO_InitStructure);
-		
-		GPIO_ResetBits(STM_IO_GPIOx,STM_IO_Pinx);				//æ‹‰ä½
-	}
+    if(on)
+    {
+        GPIO_InitStructure.GPIO_Pin = STM_IO_Pinx;                              //IO¸´ÓÃ
+        GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_OD;
+        GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+        GPIO_Init(STM_IO_GPIOx, &GPIO_InitStructure);
+    }
+    else
+    {
+        GPIO_InitStructure.GPIO_Pin = STM_IO_Pinx;                              //IOÊä³ö
+        GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+        GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+        GPIO_Init(STM_IO_GPIOx, &GPIO_InitStructure);
+
+        GPIO_ResetBits(STM_IO_GPIOx, STM_IO_Pinx);                              //À­µÍ
+    }
 }
 
 /*
-åŠŸèƒ½ï¼š	è®¾ç½®VCC
-å‚æ•°ï¼š	1å¼€/0å…³
-è¿”å›ï¼š	æ— 
+¹¦ÄÜ£º  ÉèÖÃVCC
+²ÎÊı£º  1¿ª/0¹Ø
+·µ»Ø£º  ÎŞ
 */
 void STM7816_SetVCC(uint8_t on)
 {
-	if(on)
-	{
-		GPIO_SetBits(STM_VCC_GPIOx,STM_VCC_Pinx);				//æ‹‰é«˜
-	}
-	else
-	{		
-		GPIO_ResetBits(STM_VCC_GPIOx,STM_VCC_Pinx);				//æ‹‰ä½
-	}
+    if(on)
+    {
+        GPIO_SetBits(STM_VCC_GPIOx, STM_VCC_Pinx);                              //À­¸ß
+    }
+    else
+    {
+        GPIO_ResetBits(STM_VCC_GPIOx, STM_VCC_Pinx);                            //À­µÍ
+    }
 }
 
 /*
-åŠŸèƒ½ï¼š	å†·å¤ä½
-å‚æ•°ï¼š	ATR,ATRé•¿åº¦
-è¿”å›ï¼š	1è¶…æ—¶,0æˆåŠŸ
+¹¦ÄÜ£º  Àä¸´Î»
+²ÎÊı£º  ATR,ATR³¤¶È
+·µ»Ø£º  1³¬Ê±,0³É¹¦
 */
-uint8_t ColdReset(uint8_t* atr,uint16_t* len)
+uint8_t ColdReset(uint8_t *atr, uint16_t *len)
 {
-	uint8_t i,err;
-	uint16_t overTim;
-	
-	USART_RecvByte(&i,1);										//æŠŠæ— ç”¨çš„æ•°æ®æ¸…æ‰
-	
-	STM_WT=9600;												//æ¢å¤åˆå§‹å€¼
-	STM_F=1;
-	STM_D=1;
-	*len=0;
-	
-	STM7816_SetFD(STM_F,STM_D);									//æ¢å¤æ³¢ç‰¹ç‡
-	
-	STM7816_SetClkHz(0);										//CLK,IO,RSTæ‹‰ä½
-	setIOState(0);
-	STM_RST_L;
-	
-	STM7816_SetVCC(0);											//æ–­ç”µ
-	delay_ms(50);												//å»¶æ—¶
-	
-	STM7816_SetVCC(1);											//ä¸Šç”µ
-	delay_ms(50);												//å»¶æ—¶
-	
-	STM7816_SetClkHz(STM_ClkHz);								//ç»™æ—¶é’Ÿ
-	setIOState(1);												//200ä¸ªæ—¶é’Ÿå†…IOæ‹‰é«˜,è¿™é‡Œåœ¨ç»™æ—¶é’Ÿåç›´æ¥æ‹‰é«˜
-	
-	overTim=CLKToUS(500,1);										//CLKåˆ°US,è¿›ä¸€ä¿è¯å¤§äº
-	delay_us(overTim);											//ç­‰å¾…è‡³å°‘400ä¸ªæ—¶é’Ÿ
-	STM_RST_H;													//å¤ä½è„šæ‹‰é«˜
-	overTim=CLKToUS(300,0);										//CLKåˆ°US,ä¸è¿›ä¸€ä¿è¯å°äº
-	delay_us(overTim);											//ç­‰å¾…æœ€å¤š400ä¸ªæ—¶é’Ÿ,è¿˜æ˜¯è¦ç­‰,æœ‰å¡ä¼šåœ¨RSTæ‹‰é«˜åé©¬ä¸Šè¿”å›ä¸€ä¸ªå­—èŠ‚æ•°æ®,çœŸå¥‡æ€ª
-	
-	for(i=0;i<sizeof(STM_ATR);i++)								//å¾ªç¯æ¥æ”¶ATR
-	{
-		if(i==0)
-		{
-			overTim=CLKToMS(40000,1);							//ç¬¬ä¸€ä¸ªå­—èŠ‚è¿”å›æ—¶é—´åœ¨400-40000ä¸ªæ—¶é’Ÿå†…
-		}
-		else
-		{
-			overTim=ETUToMS(STM_WT*D_Table[STM_D],1);			//å…¶ä½™å­—èŠ‚æŒ‰è¶…æ—¶æ—¶é—´
-		}
-		err=USART_RecvByte(STM_ATR+i,overTim);					//åœ¨è¶…æ—¶æ—¶é—´å†…æ¥æ”¶ä¸€å­—èŠ‚
-		if(!err)												//æ¥æ”¶åˆ°
-		{
-			uint8_t atrLen;
-			
-			(*len)++;
-			atrLen=foreATRLen(STM_ATR,*len);
-			if(atrLen==*len)
-			{
-				break;
-			}
-		}
-		else													//è¶…æ—¶
-		{
-			err=i==0;
-			break;
-		}
-	}
-	memcpy(atr,STM_ATR,*len);									//æ‹·è´ATRæ•°æ®
-	
-	
-	return err;
-	
+    uint8_t i, err;
+    uint16_t overTim;
+
+    USART_RecvByte(&i, 1);                                                      //°ÑÎŞÓÃµÄÊı¾İÇåµô
+
+    STM_WT = 9600;                                                              //»Ö¸´³õÊ¼Öµ
+    STM_F = 1;
+    STM_D = 1;
+    *len = 0;
+
+    STM7816_SetFD(STM_F, STM_D);                                                //»Ö¸´²¨ÌØÂÊ
+
+    STM7816_SetClkHz(0);                                                        //CLK,IO,RSTÀ­µÍ
+    setIOState(0);
+    STM_RST_L;
+
+    STM7816_SetVCC(0);                                                          //¶Ïµç
+    delay_ms(50);                                                               //ÑÓÊ±
+
+    STM7816_SetVCC(1);                                                          //ÉÏµç
+    delay_ms(50);                                                               //ÑÓÊ±
+
+    STM7816_SetClkHz(STM_ClkHz);                                                //¸øÊ±ÖÓ
+    setIOState(1);                                                              //200¸öÊ±ÖÓÄÚIOÀ­¸ß,ÕâÀïÔÚ¸øÊ±ÖÓºóÖ±½ÓÀ­¸ß
+
+    overTim = CLKToUS(500, 1);                                                  //CLKµ½US,½øÒ»±£Ö¤´óÓÚ
+    delay_us(overTim);                                                          //µÈ´ıÖÁÉÙ400¸öÊ±ÖÓ
+    STM_RST_H;                                                                  //¸´Î»½ÅÀ­¸ß
+    overTim = CLKToUS(300, 0);                                                  //CLKµ½US,²»½øÒ»±£Ö¤Ğ¡ÓÚ
+    delay_us(overTim);                                                          //µÈ´ı×î¶à400¸öÊ±ÖÓ,»¹ÊÇÒªµÈ,ÓĞ¿¨»áÔÚRSTÀ­¸ßºóÂíÉÏ·µ»ØÒ»¸ö×Ö½ÚÊı¾İ,ÕæÆæ¹Ö
+
+    for(i = 0; i < sizeof(STM_ATR); i++)                                        //Ñ­»·½ÓÊÕATR
+    {
+        if(i == 0)
+        {
+            overTim = CLKToMS(40000, 1);                                        //µÚÒ»¸ö×Ö½Ú·µ»ØÊ±¼äÔÚ400-40000¸öÊ±ÖÓÄÚ
+        }
+        else
+        {
+            overTim = ETUToMS(STM_WT * D_Table[STM_D], 1);                      //ÆäÓà×Ö½Ú°´³¬Ê±Ê±¼ä
+        }
+        err = USART_RecvByte(STM_ATR + i, overTim);                             //ÔÚ³¬Ê±Ê±¼äÄÚ½ÓÊÕÒ»×Ö½Ú
+        if(!err)                                                                //½ÓÊÕµ½
+        {
+            uint8_t atrLen;
+
+            (*len)++;
+            atrLen = foreATRLen(STM_ATR, *len);
+            if(atrLen == *len)
+            {
+                break;
+            }
+        }
+        else                                                                    //³¬Ê±
+        {
+            err = i == 0;
+            break;
+        }
+    }
+    memcpy(atr, STM_ATR, *len);                                                 //¿½±´ATRÊı¾İ
+
+
+    return err;
+
 }
 
 /*
-åŠŸèƒ½ï¼š	å‘é€APDUå¹¶æ¥æ”¶è¿”å›æ•°æ®
-å‚æ•°ï¼š	å‘é€æ•°æ®,é•¿åº¦,æ¥æ”¶æ•°æ®,é•¿åº¦
-è¿”å›ï¼š	0æˆåŠŸ,1è¶…æ—¶,2APDUæ ¼å¼é”™,3é€šä¿¡é”™
+¹¦ÄÜ£º  ·¢ËÍAPDU²¢½ÓÊÕ·µ»ØÊı¾İ
+²ÎÊı£º  ·¢ËÍÊı¾İ,³¤¶È,½ÓÊÕÊı¾İ,³¤¶È
+·µ»Ø£º  0³É¹¦,1³¬Ê±,2APDU¸ñÊ½´í,3Í¨ĞÅ´í
 */
-uint8_t ExchangeTPDU(uint8_t* sData,uint16_t len_sData,uint8_t* rData,uint16_t* len_rData)
+uint8_t ExchangeTPDU(uint8_t *sData, uint16_t len_sData, uint8_t *rData, uint16_t *len_rData)
 {
-	uint8_t err,wait,recvFlag;
-	uint8_t i,lc,le;
-	
-	uint8_t pc;
-	uint8_t INS=sData[1];										//è®°å½•ä¸€ä¸‹INS,é˜²æ­¢æ¥æ”¶åˆ°æ•°æ®ä¹‹åä½¿ç”¨æ—¶è¢«è¦†ç›–å‡ºé”™
-	
-	uint16_t overTim;
-	overTim=ETUToMS(STM_WT*D_Table[STM_D],1);					//è¶…æ—¶æ—¶é—´
-	
-	if(len_sData==4)											//é•¿åº¦ä¸º4,CASE1
-	{
-		sData[4]=0x00;
-		lc=le=0;
-	}
-	else if(len_sData==5)										//é•¿åº¦ä¸º5,CASE2
-	{
-		lc=0;
-		le=sData[4];
-	}
-	else
-	{
-		if(len_sData==sData[4]+5)								//Lc+5,CASE3
-		{
-			lc=sData[4];
-			le=0;
-		}
-		else if(len_sData==sData[4]+6)							//Lc+5+1(Le),CASE4
-		{
-			lc=sData[4];
-			le=sData[len_sData-1];
-		}
-		else
-		{
-			return 2;											//æ— æ³•è§£æAPDU
-		}
-	}
-	
-	USART_RecvByte(&i,1);										//æ¸…é™¤æ— ç”¨çš„æ•°æ®
-	for(i=0;i<5;i++)											//å‘é€5ä¸ªAPDUå¤´
-	{
-		USART_SendByte(sData[i]);
-	}
-	
-	wait=1;
-	len_sData=0;
-	*len_rData=0;
-	recvFlag=0;
-	while(wait)													//éœ€è¦ç»§ç»­ç­‰å¾…
-	{
-		wait=0;
-		err=USART_RecvByte(&pc,overTim);						//æ¥æ”¶ä¸€å­—èŠ‚æ•°æ®
-		if(err)
-		{
-			return err;											//é”™è¯¯
-		}
-		else
-		{
-			if((pc>=0x90&&pc<=0x9F)||(pc>=0x60&&pc<=0x6F))		//å¤„äº90-9F/60-6Fä¹‹é—´
-			{
-				switch(pc)
-				{
-					case 0x60:									//ç»§ç»­ç­‰å¾…
-						wait=1;
-					break;
-					default:									//çŠ¶æ€å­—SW
-						rData[*len_rData]=pc;					//SW1
-						(*len_rData)++;
-						USART_RecvByte(&pc,overTim);
-						rData[*len_rData]=pc;					//SW2
-						(*len_rData)++;
-					break;
-				}
-			}
-			else												//ACK
-			{
-				pc^=INS;										//è¿‡ç¨‹å­—å¼‚æˆ–INS
-				if(pc==0)										//è¿”å›å€¼=INS,æ ‡è¯†æ¥ä¸‹æ¥åº”è¯¥å°†æ‰€æœ‰è¦å‘é€çš„æ•°æ®å‘é€,æˆ–å‡†å¤‡æ¥æ”¶å…¨éƒ¨æ•°æ®
-				{
-					if(recvFlag==0&&lc>len_sData)				//å‘é€çŠ¶æ€å¹¶ä¸”æœ‰æ•°æ®è¦å‘é€
-					{
-						for(i=0;i<lc-len_sData;i++)				//å‘é€è¦å‘é€çš„å…¨éƒ¨æ•°æ®
-						{
-							USART_SendByte(sData[i+5+len_sData]);
-						}
-						len_sData=lc;
-						recvFlag=1;								//æ¥æ”¶çŠ¶æ€
-					}
-					if((recvFlag==1||lc==0)&&le>*len_rData)		//(æ¥æ”¶çŠ¶æ€æˆ–æ²¡æœ‰æ•°æ®è¦å‘é€)å¹¶ä¸”æœ‰æ•°æ®è¦æ¥æ”¶
-					{
-						for(i=0;i<le-*len_rData;i++)
-						{
-							err=USART_RecvByte(rData+*len_rData+i,overTim);
-							if(err&&i<le-*len_rData)
-							{
-								*len_rData=i;
-								return err;						//é”™è¯¯
-							}
-						}
-						*len_rData=le;
-					}
-					wait=1;
-				}
-				else if(pc==0xFF)								//è¿”å›å€¼=~INS,æ ‡è¯†æ¥ä¸‹æ¥å‘é€ä¸€å­—èŠ‚æ•°æ®,æˆ–å‡†å¤‡æ¥æ”¶1å­—èŠ‚æ•°æ®
-				{
-					if(recvFlag==0&&lc>len_sData)				//å‘é€çŠ¶æ€å¹¶ä¸”æœ‰æ•°æ®è¦å‘é€
-					{
-						USART_SendByte(sData[5+len_sData]);		//å‘é€æ¥ä¸‹æ¥çš„ä¸€å­—èŠ‚æ•°æ®
-						len_sData++;
-						if(len_sData==lc)						//å‘é€å®Œæ¯•
-						{
-							recvFlag=1;							//æ¥æ”¶çŠ¶æ€
-						}
-					}
-					if((recvFlag==1||lc==0)&&le>*len_rData)		//(æ¥æ”¶çŠ¶æ€æˆ–æ²¡æœ‰æ•°æ®è¦å‘é€)å¹¶ä¸”æœ‰æ•°æ®è¦æ¥æ”¶
-					{
-						err=USART_RecvByte(rData+*len_rData,overTim);//æ¥æ”¶ä¸€å­—èŠ‚æ•°æ®
-						if(err)
-						{
-							break;
-						}
-						(*len_rData)++;							//æ¥æ”¶é•¿åº¦ç´¯åŠ 
-					}
-					wait=1;
-				}
-				else											//å…¶ä»–
-				{
-					return 3;
-				}
-			}
-		}
-	}
-	return 0;
+    uint8_t err, wait, recvFlag;
+    uint8_t i, lc, le;
+
+    uint8_t pc;
+    uint8_t INS = sData[1];                                                     //¼ÇÂ¼Ò»ÏÂINS,·ÀÖ¹½ÓÊÕµ½Êı¾İÖ®ºóÊ¹ÓÃÊ±±»¸²¸Ç³ö´í
+
+    uint16_t overTim;
+    overTim = ETUToMS(STM_WT * D_Table[STM_D], 1);                              //³¬Ê±Ê±¼ä
+
+    if(len_sData == 4)                                                          //³¤¶ÈÎª4,CASE1
+    {
+        sData[4] = 0x00;
+        lc = le = 0;
+    }
+    else if(len_sData == 5)                                                     //³¤¶ÈÎª5,CASE2
+    {
+        lc = 0;
+        le = sData[4];
+    }
+    else
+    {
+        if(len_sData == sData[4] + 5)                                           //Lc+5,CASE3
+        {
+            lc = sData[4];
+            le = 0;
+        }
+        else if(len_sData == sData[4] + 6)                                      //Lc+5+1(Le),CASE4
+        {
+            lc = sData[4];
+            le = sData[len_sData - 1];
+        }
+        else
+        {
+            return 2;                                                           //ÎŞ·¨½âÎöAPDU
+        }
+    }
+
+    USART_RecvByte(&i, 1);                                                      //Çå³ıÎŞÓÃµÄÊı¾İ
+    for(i = 0; i < 5; i++)                                                      //·¢ËÍ5¸öAPDUÍ·
+    {
+        USART_SendByte(sData[i]);
+    }
+
+    wait = 1;
+    len_sData = 0;
+    *len_rData = 0;
+    recvFlag = 0;
+    while(wait)                                                                 //ĞèÒª¼ÌĞøµÈ´ı
+    {
+        wait = 0;
+        err = USART_RecvByte(&pc, overTim);                                     //½ÓÊÕÒ»×Ö½ÚÊı¾İ
+        if(err)
+        {
+            return err;                                                         //´íÎó
+        }
+        else
+        {
+            if((pc >= 0x90 && pc <= 0x9F) || (pc >= 0x60 && pc <= 0x6F))        //´¦ÓÚ90-9F/60-6FÖ®¼ä
+            {
+                switch(pc)
+                {
+                case 0x60:                                                      //¼ÌĞøµÈ´ı
+                    wait = 1;
+                    break;
+                default:                                                        //×´Ì¬×ÖSW
+                    rData[*len_rData] = pc;                                     //SW1
+                    (*len_rData)++;
+                    USART_RecvByte(&pc, overTim);
+                    rData[*len_rData] = pc;										//SW2
+                    (*len_rData)++;
+                    break;
+                }
+            }
+            else                                                                //ACK
+            {
+                pc ^= INS;                                                      //¹ı³Ì×ÖÒì»òINS
+                if(pc == 0)                                                     //·µ»ØÖµ=INS,±êÊ¶½ÓÏÂÀ´Ó¦¸Ã½«ËùÓĞÒª·¢ËÍµÄÊı¾İ·¢ËÍ,»ò×¼±¸½ÓÊÕÈ«²¿Êı¾İ
+                {
+                    if(recvFlag == 0 && lc > len_sData)                         //·¢ËÍ×´Ì¬²¢ÇÒÓĞÊı¾İÒª·¢ËÍ
+                    {
+                        for(i = 0; i < lc - len_sData; i++)                     //·¢ËÍÒª·¢ËÍµÄÈ«²¿Êı¾İ
+                        {
+                            USART_SendByte(sData[i + 5 + len_sData]);
+                        }
+                        len_sData = lc;
+                        recvFlag = 1;                                           //½ÓÊÕ×´Ì¬
+                    }
+                    if((recvFlag == 1 || lc == 0) && le > *len_rData)           //(½ÓÊÕ×´Ì¬»òÃ»ÓĞÊı¾İÒª·¢ËÍ)²¢ÇÒÓĞÊı¾İÒª½ÓÊÕ
+                    {
+                        for(i = 0; i < le - *len_rData; i++)
+                        {
+                            err = USART_RecvByte(rData + *len_rData + i, overTim);
+                            if(err && i < le - *len_rData)
+                            {
+                                *len_rData = i;
+                                return err;                                    //´íÎó
+                            }
+                        }
+                        *len_rData = le;
+                    }
+                    wait = 1;
+                }
+                else if(pc == 0xFF)                                             //·µ»ØÖµ=~INS,±êÊ¶½ÓÏÂÀ´·¢ËÍÒ»×Ö½ÚÊı¾İ,»ò×¼±¸½ÓÊÕ1×Ö½ÚÊı¾İ
+                {
+                    if(recvFlag == 0 && lc > len_sData)                         //·¢ËÍ×´Ì¬²¢ÇÒÓĞÊı¾İÒª·¢ËÍ
+                    {
+                        USART_SendByte(sData[5 + len_sData]);                   //·¢ËÍ½ÓÏÂÀ´µÄÒ»×Ö½ÚÊı¾İ
+                        len_sData++;
+                        if(len_sData == lc)                                     //·¢ËÍÍê±Ï
+                        {
+                            recvFlag = 1;                                       //½ÓÊÕ×´Ì¬
+                        }
+                    }
+                    if((recvFlag == 1 || lc == 0) && le > *len_rData)           //(½ÓÊÕ×´Ì¬»òÃ»ÓĞÊı¾İÒª·¢ËÍ)²¢ÇÒÓĞÊı¾İÒª½ÓÊÕ
+                    {
+                        err = USART_RecvByte(rData + *len_rData, overTim);      //½ÓÊÕÒ»×Ö½ÚÊı¾İ
+                        if(err)
+                        {
+                            break;
+                        }
+                        (*len_rData)++;                                         //½ÓÊÕ³¤¶ÈÀÛ¼Ó
+                    }
+                    wait = 1;
+                }
+                else                                                            //ÆäËû
+                {
+                    return 3;
+                }
+            }
+        }
+    }
+    return 0;
 }
 
 /*
-åŠŸèƒ½ï¼š	PPS
-å‚æ•°ï¼š	F,Dçš„è¡¨æ ¼ç´¢å¼•å€¼
-è¿”å›ï¼š	0æˆåŠŸ,1å¤±è´¥
+¹¦ÄÜ£º  PPS
+²ÎÊı£º  F,DµÄ±í¸ñË÷ÒıÖµ
+·µ»Ø£º  0³É¹¦,1Ê§°Ü
 */
-uint8_t PPS(uint8_t F,uint8_t D)
+uint8_t PPS(uint8_t F, uint8_t D)
 {
-	uint8_t i,err;
-	uint16_t overTim;
-	uint8_t pps_cmd[4]={0xFF,0x10,0xFD,0x00};
-	uint8_t pps_res[4]={0x00,0x00,0x00,0x00};
-	
-	overTim=ETUToMS(STM_WT*D_Table[STM_D],1);					//è¶…æ—¶æ—¶é—´
-	
-	pps_cmd[2]=((F<<4)&0xF0)|(D&0x0F);							//èµ‹å€¼FD
-	for(i=0;i<3;i++)
-	{
-		pps_cmd[3]^=pps_cmd[i];									//å¼‚æˆ–æ ¡éªŒ
-	}
-	
-	for(i=0;i<4;i++)											//å‘é€PPS
-	{
-		USART_SendByte(pps_cmd[i]);
-	}
-	
-	for(i=0;i<4;i++)
-	{
-		err=USART_RecvByte(&pps_res[i],overTim);
-		if(err)
-		{
-			break;												//é”™è¯¯
-		}
-	}
-	if(i==4)													//æŒ‰åè®®åº”è¿”å›å››å­—èŠ‚
-	{
-		if(pps_res[0]==0xFF&&(pps_res[1]&0x10)==0x10&&pps_res[2]==pps_cmd[2])
-		{
-			STM7816_SetFD(F,D);
-		}
-		else
-		{
-			return 1;
-		}
-	}
-	else														//ä¸æŒ‰åè®®
-	{															//
-//		if(((pps_res[0]&0x10)==0x10&&pps_res[1]==pps_cmd[2]))
-//		{
-//			STM7816_SetFD(F,D);
-//		}
-//		else
-//		{
-//			return 1;
-//		}
-	}
-	
-	return 1;
+    uint8_t i, err;
+    uint16_t overTim;
+    uint8_t pps_cmd[4] = {0xFF, 0x10, 0xFD, 0x00};
+    uint8_t pps_res[4] = {0x00, 0x00, 0x00, 0x00};
+
+    overTim = ETUToMS(STM_WT * D_Table[STM_D], 1);                              //³¬Ê±Ê±¼ä
+
+    pps_cmd[2] = ((F << 4) & 0xF0) | (D & 0x0F);                                //¸³ÖµFD
+    for(i = 0; i < 3; i++)
+    {
+        pps_cmd[3] ^= pps_cmd[i];                                               //Òì»òĞ£Ñé
+    }
+
+    for(i = 0; i < 4; i++)                                                      //·¢ËÍPPS
+    {
+        USART_SendByte(pps_cmd[i]);
+    }
+
+    for(i = 0; i < 4; i++)
+    {
+        err = USART_RecvByte(&pps_res[i], overTim);
+        if(err)
+        {
+            break;                                                              //´íÎó
+        }
+    }
+    if(i == 4)                                                                  //°´Ğ­ÒéÓ¦·µ»ØËÄ×Ö½Ú
+    {
+        if(pps_res[0] == 0xFF && (pps_res[1] & 0x10) == 0x10 && pps_res[2] == pps_cmd[2])
+        {
+            STM7816_SetFD(F, D);
+        }
+        else
+        {
+            return 1;
+        }
+    }
+    else                                                                        //²»°´Ğ­Òé
+    {
+        //
+        //		if(((pps_res[0]&0x10)==0x10&&pps_res[1]==pps_cmd[2]))
+        //		{
+        //			STM7816_SetFD(F,D);
+        //		}
+        //		else
+        //		{
+        //			return 1;
+        //		}
+    }
+
+    return 1;
 }
 
 

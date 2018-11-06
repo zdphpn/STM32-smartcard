@@ -4,11 +4,11 @@
 
 
 /*
-æ–‡ä»¶ç”¨é€”:			STM32é©±åŠ¨æ¥è§¦å¡
-ä½œè€…:		          å¼ æ ‹åŸ¹
-åˆ›å»ºæ—¶é—´:			2018/07/04
-æ›´æ–°æ—¶é—´:			2018/07/04
-ç‰ˆæœ¬:			  V1.0
+ÎÄ¼şÓÃÍ¾:           7816Çı¶¯ÎÄ¼ş
+×÷Õß:               ÕÅ¶°Åà
+´´½¨Ê±¼ä:           2018/07/04
+¸üĞÂÊ±¼ä:           2018/07/04
+°æ±¾:               V1.0
 
 */
 
@@ -16,49 +16,49 @@
 #include "stm32f10x.h"
 
 
-/*å¼•è„šå®šä¹‰*/
-#define STM_USARTx			USART3
-#define STM_USARTx_IRQn			USART3_IRQn
+/*Òı½Å¶¨Òå*/
+#define STM_USARTx              USART3
+#define STM_USARTx_IRQn         USART3_IRQn
 
-#define STM_CLK_GPIOx			GPIOC
-#define STM_CLK_Pinx			GPIO_Pin_12
-#define STM_IO_GPIOx			GPIOC
-#define STM_IO_Pinx			GPIO_Pin_10
+#define STM_CLK_GPIOx           GPIOC
+#define STM_CLK_Pinx            GPIO_Pin_12
+#define STM_IO_GPIOx            GPIOC
+#define STM_IO_Pinx             GPIO_Pin_10
 
-#define STM_RST_GPIOx			GPIOB
-#define STM_RST_Pinx			GPIO_Pin_12
-#define STM_VCC_GPIOx			GPIOD
-#define STM_VCC_Pinx			GPIO_Pin_2
+#define STM_RST_GPIOx           GPIOB
+#define STM_RST_Pinx            GPIO_Pin_12
+#define STM_VCC_GPIOx           GPIOD
+#define STM_VCC_Pinx            GPIO_Pin_2
 
-#define STM_RCC_APBxPeriphClockCmd	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO|RCC_APB2Periph_GPIOB|RCC_APB2Periph_GPIOC|RCC_APB2Periph_GPIOD,ENABLE);\
-								GPIO_PinRemapConfig(GPIO_PartialRemap_USART3,ENABLE);\
-								RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3,ENABLE)
-																		
-																		
-																		
-
-extern uint8_t ATR_TA1;							//å¡ATRä¸­TA1çš„å€¼,TA1åŒ…å«FD	
-extern uint8_t STM_T1;							//å¡æ˜¯å¦ä¸ºT=1,0ä¸ºT=0,1ä¸ºT=1
-extern uint32_t STM_WT;							//é€šä¿¡è¶…æ—¶æ—¶é—´WT=9600
-
-extern uint8_t STM_F;							//F=1
-extern uint8_t STM_D;							//D=1
-extern uint32_t STM_ClkHz;						//é¢‘ç‡=4.5MHz
+#define STM_RCC_APBxPeriphClockCmd  RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO|RCC_APB2Periph_GPIOB|RCC_APB2Periph_GPIOC|RCC_APB2Periph_GPIOD,ENABLE);\
+                                    GPIO_PinRemapConfig(GPIO_PartialRemap_USART3,ENABLE);\
+                                    RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3,ENABLE)
 
 
-void STM7816_Init(void);						//åˆå§‹åŒ–
-void STM7816_TIMxInt(void);						//1MSå®šæ—¶ä¸­æ–­è°ƒç”¨,ä¸ºé€šä¿¡è¶…æ—¶æä¾›æ—¶é—´ä¾æ®
 
-void STM7816_SetClkHz(uint32_t hz);					//è®¾ç½®æ—¶é’Ÿé¢‘ç‡
-void STM7816_SetFD(uint8_t F,uint8_t D);				//è®¾ç½®FD
-void STM7816_SetWT(uint32_t wt);					//è®¾ç½®é€šä¿¡è¶…æ—¶æ—¶é—´
-void STM7816_SetVCC(uint8_t on);					//è®¾ç½®VCC
 
-uint8_t ColdReset(uint8_t* atr,uint16_t* len);				//å†·å¤ä½
-uint8_t WarmReset(uint8_t* atr,uint16_t* len);				//çƒ­å¤ä½
-uint8_t PPS(uint8_t F,uint8_t D);					//PPS
-									//å‘é€APDU,å¹¶æ¥æ”¶è¿”å›æ•°æ®,æ²¡æœ‰å‡ºé”™é‡å‘æœºåˆ¶
-uint8_t ExchangeTPDU(uint8_t* sData,uint16_t len_sData,uint8_t* rData,uint16_t* len_rData);
+extern uint8_t ATR_TA1;                                                         //¿¨ATRÖĞTA1µÄÖµ,TA1°üº¬FD
+extern uint8_t STM_T1;                                                          //¿¨ÊÇ·ñÎªT=1,0ÎªT=0,1ÎªT=1
+extern uint32_t STM_WT;			                                                //Í¨ĞÅ³¬Ê±Ê±¼äWT=9600
+
+extern uint8_t STM_F;                                                           //F=1
+extern uint8_t STM_D;                                                           //D=1
+extern uint32_t STM_ClkHz;                                                      //ÆµÂÊ=3.6MHz
+
+
+void STM7816_Init(void);                                                        //³õÊ¼»¯
+void STM7816_TIMxInt(void);                                                     //1MS¶¨Ê±ÖĞ¶Ïµ÷ÓÃ,ÎªÍ¨ĞÅ³¬Ê±Ìá¹©Ê±¼äÒÀ¾İ
+
+void STM7816_SetClkHz(uint32_t hz);                                             //ÉèÖÃÊ±ÖÓÆµÂÊ
+void STM7816_SetFD(uint8_t F, uint8_t D);                                       //ÉèÖÃFD
+void STM7816_SetWT(uint32_t wt);                                                //ÉèÖÃÍ¨ĞÅ³¬Ê±Ê±¼ä
+void STM7816_SetVCC(uint8_t on);                                                //ÉèÖÃVCC
+
+uint8_t ColdReset(uint8_t *atr, uint16_t *len);                                 //Àä¸´Î»
+uint8_t WarmReset(uint8_t *atr, uint16_t *len);                                 //ÈÈ¸´Î»
+uint8_t PPS(uint8_t F, uint8_t D);                                              //PPS
+                                                                                //·¢ËÍAPDU,²¢½ÓÊÕ·µ»ØÊı¾İ,Ã»ÓĞ³ö´íÖØ·¢»úÖÆ
+uint8_t ExchangeTPDU(uint8_t *sData, uint16_t len_sData, uint8_t *rData, uint16_t *len_rData);
 
 
 #endif
