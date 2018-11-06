@@ -735,14 +735,14 @@ uint8_t PPS(uint8_t F, uint8_t D)
     else                                                                        //不按协议
     {
         //
-        //		if(((pps_res[0]&0x10)==0x10&&pps_res[1]==pps_cmd[2]))
-        //		{
-        //			STM7816_SetFD(F,D);
-        //		}
-        //		else
-        //		{
-        //			return 1;
-        //		}
+        //if(((pps_res[0]&0x10)==0x10&&pps_res[1]==pps_cmd[2]))
+        //{
+            //STM7816_SetFD(F,D);
+        //}
+        //else
+        //{
+            //return 1;
+        //}
     }
 
     return 1;
