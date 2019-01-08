@@ -3,15 +3,15 @@
 
 
 /*
-ÎÄ¼þÓÃÍ¾:           ISO14443Ð­Òé
-×÷Õß:               ÕÅ¶°Åà
-´´½¨Ê±¼ä:           2018/04/20
-¸üÐÂÊ±¼ä:           2018/10/31
-°æ±¾:               V1.2
+æ–‡ä»¶ç”¨é€”:           ISO14443åè®®
+ä½œè€…:               å¼ æ ‹åŸ¹
+åˆ›å»ºæ—¶é—´:           2018/04/20
+æ›´æ–°æ—¶é—´:           2018/10/31
+ç‰ˆæœ¬:               V1.2
 
-ÀúÊ·°æ±¾:           V1.0:»ùÓÚTHM3070ÊµÏÖISO14443Ð­Òé
-                    V1.1:ÐÞ¸´ÁË¿éºÅµ¼ÖÂµÄBUG,ÐÞ¸´ÁË¼ì²â¿¨TESTA/Bº¯Êý¹¤×÷Òì³£µÄÎÊÌâ
-                    V1.2:È¥³ýÄ³Ð©º¯ÊýÄÚÊ¹ÓÃ¾Ö²¿±äÁ¿È¥½ÓÊÕ²»¶¨³¤Êý¾ÝµÄ²Ù×÷
+åŽ†å²ç‰ˆæœ¬:           V1.0:åŸºäºŽTHM3070å®žçŽ°ISO14443åè®®
+                    V1.1:ä¿®å¤äº†å—å·å¯¼è‡´çš„BUG,ä¿®å¤äº†æ£€æµ‹å¡TESTA/Bå‡½æ•°å·¥ä½œå¼‚å¸¸çš„é—®é¢˜
+                    V1.2:åŽ»é™¤æŸäº›å‡½æ•°å†…ä½¿ç”¨å±€éƒ¨å˜é‡åŽ»æŽ¥æ”¶ä¸å®šé•¿æ•°æ®çš„æ“ä½œ
 
 */
 
@@ -21,71 +21,71 @@
 #include "string.h"
 
 
-static const uint16_t TAB_MaximumFarmeSize[16] =                                //×î´óÖ¡³¤¶È±í
+static const uint16_t TAB_MaximumFarmeSize[16] =                                //æœ€å¤§å¸§é•¿åº¦è¡¨
 {
     16, 24, 32, 40, 48, 64, 96, 128, 256, 256, 256, 256, 256, 256, 256, 256
 };
 
 
-uint8_t ISO_PCB = 0x0A;                                                         //Í¨ÐÅÊý¾Ý¿éµÄµÚ1×Ö½Ú,0x02/0x0A,Ä¬ÈÏÎªI¿é,²»Á´½Ó,CID¸úËæ
-uint8_t ISO_PICC_CIDSUP = 0x01;                                                 //¿¨ÊÇ·ñÖ§³ÖCID,Ä¬ÈÏÖ§³Ö
-uint32_t ISO_PICC_FWT = 0x64;                                                   //Í¨ÐÅµÈ´ý³¬Ê±Ê±¼ä,Ä¬ÈÏ100*330us=33ms
-uint16_t ISO_PICC_MFSIZE = 16;                                                  //¿¨ÄÜ½ÓÊÕµÄ×î´óÖ¡³¤,Ä¬ÈÏ16
+uint8_t ISO_PCB = 0x0A;                                                         //é€šä¿¡æ•°æ®å—çš„ç¬¬1å­—èŠ‚,0x02/0x0A,é»˜è®¤ä¸ºIå—,ä¸é“¾æŽ¥,CIDè·Ÿéš
+uint8_t ISO_PICC_CIDSUP = 0x01;                                                 //å¡æ˜¯å¦æ”¯æŒCID,é»˜è®¤æ”¯æŒ
+uint32_t ISO_PICC_FWT = 0x64;                                                   //é€šä¿¡ç­‰å¾…è¶…æ—¶æ—¶é—´,é»˜è®¤100*330us=33ms
+uint16_t ISO_PICC_MFSIZE = 16;                                                  //å¡èƒ½æŽ¥æ”¶çš„æœ€å¤§å¸§é•¿,é»˜è®¤16
 
 
-uint8_t ISO_ATQB[16] = {0x00};                                                  //ATQBÊý¾Ý
-#define ISO_ATQB_PUPI               (ISO_ATQB+1)                                //ATQBÖÐµÄPUPI
-#define ISO_ATQB_APPDATA            (ISO_ATQB+5)                                //ATQBÖÐµÄApplication Data
-#define ISO_ATQB_PROTOCOLINFO       (ISO_ATQB+9)                                //ATQBÖÐµÄ²ÎÊýÐÅÏ¢
-#define ISO_ATQB_PLINFO_SFGI        ((ISO_ATQB_PROTOCOLINFO[3]&0xF0)>>4)        //SFGI,¿¨ÏìÓ¦ATTRIBºó¶Á¿¨Æ÷Ó¦¸ÃÑÓÊ±µÄÊ±¼ä
-#define ISO_ATQB_PLINFO_FO          ((ISO_ATQB_PROTOCOLINFO[2]&0x03)>>0)        //F0²ÎÊý
-#define ISO_ATQB_PLINFO_FO_CIDEN    (ISO_ATQB_PLINFO_FO&0x01)                   //ÊÇ·ñÖ§³ÖCID
+uint8_t ISO_ATQB[16] = {0x00};                                                  //ATQBæ•°æ®
+#define ISO_ATQB_PUPI               (ISO_ATQB+1)                                //ATQBä¸­çš„PUPI
+#define ISO_ATQB_APPDATA            (ISO_ATQB+5)                                //ATQBä¸­çš„Application Data
+#define ISO_ATQB_PROTOCOLINFO       (ISO_ATQB+9)                                //ATQBä¸­çš„å‚æ•°ä¿¡æ¯
+#define ISO_ATQB_PLINFO_SFGI        ((ISO_ATQB_PROTOCOLINFO[3]&0xF0)>>4)        //SFGI,å¡å“åº”ATTRIBåŽè¯»å¡å™¨åº”è¯¥å»¶æ—¶çš„æ—¶é—´
+#define ISO_ATQB_PLINFO_FO          ((ISO_ATQB_PROTOCOLINFO[2]&0x03)>>0)        //F0å‚æ•°
+#define ISO_ATQB_PLINFO_FO_CIDEN    (ISO_ATQB_PLINFO_FO&0x01)                   //æ˜¯å¦æ”¯æŒCID
 #define ISO_ATQB_PLINFO_ADC         ((ISO_ATQB_PROTOCOLINFO[2]&0x0C)>>2)        //
-#define ISO_ATQB_PLINFO_FWI         ((ISO_ATQB_PROTOCOLINFO[2]&0xF0)>>4)        //Í¨ÐÅ³¬Ê±Ê±¼ä
-#define ISO_ATQB_PLINFO_PTYPE       ((ISO_ATQB_PROTOCOLINFO[1]&0x0F)>>0)        //ÊÇ·ñÖ§³Ö14443Ð­Òé,TR2×îÐ¡Öµ
-#define ISO_ATQB_PLINFO_MFSIZE      ((ISO_ATQB_PROTOCOLINFO[1]&0xF0)>>4)        //×î´óÖ¡³¤¶È(Òª²é±í)
-#define ISO_ATQB_PLINFO_BAUD        ISO_ATQB_PROTOCOLINFO[0]                    //Í¨ÐÅËÙÂÊ
+#define ISO_ATQB_PLINFO_FWI         ((ISO_ATQB_PROTOCOLINFO[2]&0xF0)>>4)        //é€šä¿¡è¶…æ—¶æ—¶é—´
+#define ISO_ATQB_PLINFO_PTYPE       ((ISO_ATQB_PROTOCOLINFO[1]&0x0F)>>0)        //æ˜¯å¦æ”¯æŒ14443åè®®,TR2æœ€å°å€¼
+#define ISO_ATQB_PLINFO_MFSIZE      ((ISO_ATQB_PROTOCOLINFO[1]&0xF0)>>4)        //æœ€å¤§å¸§é•¿åº¦(è¦æŸ¥è¡¨)
+#define ISO_ATQB_PLINFO_BAUD        ISO_ATQB_PROTOCOLINFO[0]                    //é€šä¿¡é€ŸçŽ‡
 
-uint8_t ISO_UID[10] = {0x00};                                                   //UIDÊý¾Ý
-uint8_t ISO_ATS[64] = {0x00};                                                   //ATSÊý¾Ý
-#define ISO_ATS_TL                  (ISO_ATS[0])                                //ATS³¤¶ÈTL
-#define ISO_ATS_T0                  (ISO_ATS[1])                                //ATS¸ñÊ½T0
-#define ISO_ATS_TCEN                ((ISO_ATS_T0>>6)&0x01)                      //ATSÖÐÊÇ·ñ°üº¬TC
-#define ISO_ATS_TBEN                ((ISO_ATS_T0>>5)&0x01)                      //ATSÖÐÊÇ·ñ°üº¬TB
-#define ISO_ATS_TAEN                ((ISO_ATS_T0>>4)&0x01)                      //ATSÖÐÊÇ·ñ°üº¬TA
-#define ISO_ATS_FSCI                ((ISO_ATS_T0>>0)&0x0F)                      //¿¨½ÓÊÕ×î´óÖ¡³¤(Òª²é±í)
-#define ISO_ATS_TA                  (ISO_ATS[2])                                //TA²ÎÊý
-#define ISO_ATS_TB                  (ISO_ATS[2+ISO_ATS_TAEN])                   //TB²ÎÊý
-#define ISO_ATS_TB_FWI              ((ISO_ATS_TB&0xF0)>>4)                      //Í¨ÐÅ³¬Ê±Ê±¼ä
-#define ISO_ATS_TB_SFGI             ((ISO_ATS_TB&0x0F)>>0)                      //SFGI,¿¨ÏìÓ¦ATSºó¶Á¿¨Æ÷Ó¦¸ÃÑÓÊ±µÄÊ±¼ä
-#define ISO_ATS_TC                  (ISO_ATS[2+ISO_ATS_TAEN+ISO_ATS_TBEN])      //TC²ÎÊý
-#define ISO_ATS_TC_CIDEN            ((ISO_ATS_TC&0x02)>>1)                      //ÊÇ·ñÖ§³ÖCID
-#define ISO_ATS_TK                  (ISO_ATS+2+ISO_ATS_TAEN+ISO_ATS_TBEN+ISO_ATS_TCEN)      //TKÀúÊ·×Ö½Ú
-#define ISO_ATS_TKLen               (ISO_ATS_TL-2-ISO_ATS_TCEN-ISO_ATS_TBEN-ISO_ATS_TAEN)   //TKÀúÊ·×Ö½Ú³¤¶È
+uint8_t ISO_UID[10] = {0x00};                                                   //UIDæ•°æ®
+uint8_t ISO_ATS[64] = {0x00};                                                   //ATSæ•°æ®
+#define ISO_ATS_TL                  (ISO_ATS[0])                                //ATSé•¿åº¦TL
+#define ISO_ATS_T0                  (ISO_ATS[1])                                //ATSæ ¼å¼T0
+#define ISO_ATS_TCEN                ((ISO_ATS_T0>>6)&0x01)                      //ATSä¸­æ˜¯å¦åŒ…å«TC
+#define ISO_ATS_TBEN                ((ISO_ATS_T0>>5)&0x01)                      //ATSä¸­æ˜¯å¦åŒ…å«TB
+#define ISO_ATS_TAEN                ((ISO_ATS_T0>>4)&0x01)                      //ATSä¸­æ˜¯å¦åŒ…å«TA
+#define ISO_ATS_FSCI                ((ISO_ATS_T0>>0)&0x0F)                      //å¡æŽ¥æ”¶æœ€å¤§å¸§é•¿(è¦æŸ¥è¡¨)
+#define ISO_ATS_TA                  (ISO_ATS[2])                                //TAå‚æ•°
+#define ISO_ATS_TB                  (ISO_ATS[2+ISO_ATS_TAEN])                   //TBå‚æ•°
+#define ISO_ATS_TB_FWI              ((ISO_ATS_TB&0xF0)>>4)                      //é€šä¿¡è¶…æ—¶æ—¶é—´
+#define ISO_ATS_TB_SFGI             ((ISO_ATS_TB&0x0F)>>0)                      //SFGI,å¡å“åº”ATSåŽè¯»å¡å™¨åº”è¯¥å»¶æ—¶çš„æ—¶é—´
+#define ISO_ATS_TC                  (ISO_ATS[2+ISO_ATS_TAEN+ISO_ATS_TBEN])      //TCå‚æ•°
+#define ISO_ATS_TC_CIDEN            ((ISO_ATS_TC&0x02)>>1)                      //æ˜¯å¦æ”¯æŒCID
+#define ISO_ATS_TK                  (ISO_ATS+2+ISO_ATS_TAEN+ISO_ATS_TBEN+ISO_ATS_TCEN)      //TKåŽ†å²å­—èŠ‚
+#define ISO_ATS_TKLen               (ISO_ATS_TL-2-ISO_ATS_TCEN-ISO_ATS_TBEN-ISO_ATS_TAEN)   //TKåŽ†å²å­—èŠ‚é•¿åº¦
 
 
 
-uint8_t ISO_SDataTemp[260];                                                     //·¢ËÍ»ò½ÓÊÕ»º´æ
+uint8_t ISO_SDataTemp[260];                                                     //å‘é€æˆ–æŽ¥æ”¶ç¼“å­˜
 
 
 
 /*
-¹¦ÄÜ£º  TYPEBÑ°¿¨
-²ÎÊý1£º ·¢ËÍµÄÊ±¼ä²ÛÊý=2^slotNum
-²ÎÊý2£º ´æ·ÅÏìÓ¦µÄATQBÊý¾Ý,±£Ö¤Æä¿Õ¼ä>=12
-²ÎÊý3£º ´æ·ÅÏìÓ¦µÄATQBÊý¾Ý³¤¶È
-·µ»Ø£º  Ö´ÐÐ½á¹û
+åŠŸèƒ½ï¼š  TYPEBå¯»å¡
+å‚æ•°1ï¼š å‘é€çš„æ—¶é—´æ§½æ•°=2^slotNum
+å‚æ•°2ï¼š å­˜æ”¾å“åº”çš„ATQBæ•°æ®,ä¿è¯å…¶ç©ºé—´>=12
+å‚æ•°3ï¼š å­˜æ”¾å“åº”çš„ATQBæ•°æ®é•¿åº¦
+è¿”å›žï¼š  æ‰§è¡Œç»“æžœ
 */
 uint8_t REQB(uint8_t slotNum, uint8_t *DAT_ATQB, uint16_t *LEN_ATQB)
 {
     uint8_t RSTST;
 
-    uint8_t CMD[3] = {0x05, 0x00, 0x00};                                        //REQBÃüÁî
-    CMD[2] |= (slotNum & 0x07);                                                 //¼ÓÈëÊ±¼ä²ÛÊý
+    uint8_t CMD[3] = {0x05, 0x00, 0x00};                                        //REQBå‘½ä»¤
+    CMD[2] |= (slotNum & 0x07);                                                 //åŠ å…¥æ—¶é—´æ§½æ•°
 
     ISO_PICC_FWT = 0x05;
-    THM3070_SetFWT(ISO_PICC_FWT);                                               //³¬Ê±Ê±¼äÎª5*330us=1.65ms
-    THM3070_SetTYPEB();                                                         //TYPEBÄ£Ê½
+    THM3070_SetFWT(ISO_PICC_FWT);                                               //è¶…æ—¶æ—¶é—´ä¸º5*330us=1.65ms
+    THM3070_SetTYPEB();                                                         //TYPEBæ¨¡å¼
 
     THM3070_SendFrame(CMD, 3);
     RSTST = THM3070_RecvFrame(DAT_ATQB, LEN_ATQB);
@@ -96,76 +96,76 @@ uint8_t REQB(uint8_t slotNum, uint8_t *DAT_ATQB, uint16_t *LEN_ATQB)
 }
 
 /*
-¹¦ÄÜ£º  TYPEB»½ÐÑ
-²ÎÊý1£º ·¢ËÍµÄÊ±¼ä²ÛÊý=2^slotNum
-²ÎÊý2£º ´æ·ÅÏìÓ¦µÄATQBÊý¾Ý,±£Ö¤Æä¿Õ¼ä>=12
-²ÎÊý3£º ´æ·ÅÏìÓ¦µÄATQBÊý¾Ý³¤¶È
-·µ»Ø£º  Ö´ÐÐ½á¹û
+åŠŸèƒ½ï¼š  TYPEBå”¤é†’
+å‚æ•°1ï¼š å‘é€çš„æ—¶é—´æ§½æ•°=2^slotNum
+å‚æ•°2ï¼š å­˜æ”¾å“åº”çš„ATQBæ•°æ®,ä¿è¯å…¶ç©ºé—´>=12
+å‚æ•°3ï¼š å­˜æ”¾å“åº”çš„ATQBæ•°æ®é•¿åº¦
+è¿”å›žï¼š  æ‰§è¡Œç»“æžœ
 */
 uint8_t WUPB(uint8_t slotNum, uint8_t *DAT_ATQB, uint16_t *LEN_ATQB)
 {
     uint8_t RSTST;
 
-    uint8_t CMD[3] = {0x05, 0x00, 0x08};                                        //WUPBÃüÁî
-    CMD[2] |= (slotNum & 0x07);                                                 //¼ÓÈëÊ±¼ä²ÛÊý
+    uint8_t CMD[3] = {0x05, 0x00, 0x08};                                        //WUPBå‘½ä»¤
+    CMD[2] |= (slotNum & 0x07);                                                 //åŠ å…¥æ—¶é—´æ§½æ•°
 
     ISO_PICC_FWT = 0x05;
-    THM3070_SetFWT(ISO_PICC_FWT);                                               //³¬Ê±Ê±¼äÎª5*330us=1.65ms
-    THM3070_SetTYPEB();                                                         //TYPEBÄ£Ê½
+    THM3070_SetFWT(ISO_PICC_FWT);                                               //è¶…æ—¶æ—¶é—´ä¸º5*330us=1.65ms
+    THM3070_SetTYPEB();                                                         //TYPEBæ¨¡å¼
 
 
     THM3070_SendFrame(CMD, 3);
     RSTST = THM3070_RecvFrame(DAT_ATQB, LEN_ATQB);
 
-    memcpy(ISO_ATQB, DAT_ATQB, *LEN_ATQB);                                      //±£´æATQB
+    memcpy(ISO_ATQB, DAT_ATQB, *LEN_ATQB);                                      //ä¿å­˜ATQB
 
     return RSTST;
 }
 
 /*
-¹¦ÄÜ£º  TYPEB·¢ËÍÊ±¼ä²Û
-²ÎÊý1£º ·¢ËÍµÄÊ±¼ä²ÛÊý±àºÅ:2-16
-²ÎÊý2£º ´æ·ÅÏìÓ¦µÄATQBÊý¾Ý,±£Ö¤Æä¿Õ¼ä>=12
-²ÎÊý3£º ´æ·ÅÏìÓ¦µÄATQBÊý¾Ý³¤¶È
-·µ»Ø£º  Ö´ÐÐ½á¹û
+åŠŸèƒ½ï¼š  TYPEBå‘é€æ—¶é—´æ§½
+å‚æ•°1ï¼š å‘é€çš„æ—¶é—´æ§½æ•°ç¼–å·:2-16
+å‚æ•°2ï¼š å­˜æ”¾å“åº”çš„ATQBæ•°æ®,ä¿è¯å…¶ç©ºé—´>=12
+å‚æ•°3ï¼š å­˜æ”¾å“åº”çš„ATQBæ•°æ®é•¿åº¦
+è¿”å›žï¼š  æ‰§è¡Œç»“æžœ
 */
 uint8_t SlotMARKER(uint8_t slotIndex, uint8_t *DAT_ATQB, uint16_t *LEN_ATQB)
 {
     uint8_t RSTST;
 
-    uint8_t CMD[1] = {0x05};                                                    //SlotMARKERÃüÁî
+    uint8_t CMD[1] = {0x05};                                                    //SlotMARKERå‘½ä»¤
     slotIndex <<= 4;
     slotIndex -= 1;
-    CMD[0] |= (slotIndex & 0xF0);                                               //¼ÓÈëÊ±¼ä²Û±àºÅ
+    CMD[0] |= (slotIndex & 0xF0);                                               //åŠ å…¥æ—¶é—´æ§½ç¼–å·
 
     ISO_PICC_FWT = 0x05;
-    THM3070_SetFWT(ISO_PICC_FWT);                                               //³¬Ê±Ê±¼äÎª5*330us=1.65ms
+    THM3070_SetFWT(ISO_PICC_FWT);                                               //è¶…æ—¶æ—¶é—´ä¸º5*330us=1.65ms
 
     THM3070_SendFrame(CMD, 3);
     RSTST = THM3070_RecvFrame(DAT_ATQB, LEN_ATQB);
 
-    memcpy(ISO_ATQB, DAT_ATQB, *LEN_ATQB);                                      //±£´æATQB
+    memcpy(ISO_ATQB, DAT_ATQB, *LEN_ATQB);                                      //ä¿å­˜ATQB
 
     return RSTST;
 }
 
 /*
-¹¦ÄÜ£º  TYPEB¼¤»î
-²ÎÊý1£º ´æ·ÅATTRIBµÄÏìÓ¦,±£Ö¤Æä¿Õ¼ä>=1+n
-²ÎÊý2£º ´æ·ÅATTRIBµÄÏìÓ¦³¤¶È
-·µ»Ø£º  Ö´ÐÐ½á¹û
+åŠŸèƒ½ï¼š  TYPEBæ¿€æ´»
+å‚æ•°1ï¼š å­˜æ”¾ATTRIBçš„å“åº”,ä¿è¯å…¶ç©ºé—´>=1+n
+å‚æ•°2ï¼š å­˜æ”¾ATTRIBçš„å“åº”é•¿åº¦
+è¿”å›žï¼š  æ‰§è¡Œç»“æžœ
 */
 uint8_t ATTRIB(uint8_t *DAT_ATTRIBAnswer, uint16_t *LEN_ATTRIBAnswer)
 {
     uint8_t RSTST;
     uint8_t TxBuad = 0, RxBuad = 0;
 
-    uint8_t CMD[9] = {0x1D};                                                    //ATTRIBÃüÁî
+    uint8_t CMD[9] = {0x1D};                                                    //ATTRIBå‘½ä»¤
     memcpy(CMD + 1, ISO_ATQB_PUPI, 4);                                          //PUPI
     CMD[5] = 0x00;                                                              //TR0,TR1,EOF,SOF
-    CMD[6] = 0x08;                                                              //PCD½ÓÊÕ×î´óÖ¡256
-    /*µ÷ÕûËÙÂÊ
-    if(ISO_ATQB_PLINFO_BAUD!=0x00)                                              //¿Éµ÷ËÙÂÊ
+    CMD[6] = 0x08;                                                              //PCDæŽ¥æ”¶æœ€å¤§å¸§256
+    /*è°ƒæ•´é€ŸçŽ‡
+    if(ISO_ATQB_PLINFO_BAUD!=0x00)                                              //å¯è°ƒé€ŸçŽ‡
     {
         uint8_t temp=0x00;
 
@@ -184,9 +184,9 @@ uint8_t ATTRIB(uint8_t *DAT_ATTRIBAnswer, uint16_t *LEN_ATTRIBAnswer)
             temp|=0x40;
             RxBuad=0x01;
         }
-        CMD[6]|=temp;                                                           //ÉèÖÃPICC TO PCDËÙÂÊ
+        CMD[6]|=temp;                                                           //è®¾ç½®PICC TO PCDé€ŸçŽ‡
 
-        if((ISO_ATQB_PLINFO_BAUD&0x80)==0x80)                                   //·¢ËÍ½ÓÊÕËÙÂÊÏàÍ¬
+        if((ISO_ATQB_PLINFO_BAUD&0x80)==0x80)                                   //å‘é€æŽ¥æ”¶é€ŸçŽ‡ç›¸åŒ
         {
             CMD[6]|=temp>>2;
         }
@@ -208,24 +208,24 @@ uint8_t ATTRIB(uint8_t *DAT_ATTRIBAnswer, uint16_t *LEN_ATTRIBAnswer)
                 temp|=0x10;
                 TxBuad=0x01;
             }
-            CMD[6]|=temp;                                                       //ÉèÖÃPCD TO PICCËÙÂÊ
+            CMD[6]|=temp;                                                       //è®¾ç½®PCD TO PICCé€ŸçŽ‡
         }
     }
-    µ÷ÕûËÙÂÊ*/
-    CMD[7] = 0x01;                                                              //Ö§³Ö14443,TR2
-    CMD[8] = 0x00;                                                              //Îª¿¨·ÖÅäµÄCID,Ä¬ÈÏÎª0
+    è°ƒæ•´é€ŸçŽ‡*/
+    CMD[7] = 0x01;                                                              //æ”¯æŒ14443,TR2
+    CMD[8] = 0x00;                                                              //ä¸ºå¡åˆ†é…çš„CID,é»˜è®¤ä¸º0
 
 
     ISO_PICC_FWT = 0x10;
-    THM3070_SetFWT(ISO_PICC_FWT);                                               //³¬Ê±Ê±¼äÎª16*330us=5ms
+    THM3070_SetFWT(ISO_PICC_FWT);                                               //è¶…æ—¶æ—¶é—´ä¸º16*330us=5ms
 
     THM3070_SendFrame(CMD, 9);
     RSTST = THM3070_RecvFrame(DAT_ATTRIBAnswer, LEN_ATTRIBAnswer);
 
     if(RSTST == THM_RSTST_FEND)
     {
-        ISO_PICC_CIDSUP = ISO_ATQB_PLINFO_FO_CIDEN;                             //ÉèÖÃÊÇ·ñÖ§³ÖCID
-        ISO_PICC_FWT = 0x0001 << ISO_ATQB_PLINFO_FWI;                           //ÉèÖÃÍ¨ÐÅ³¬Ê±Ê±¼ä
+        ISO_PICC_CIDSUP = ISO_ATQB_PLINFO_FO_CIDEN;                             //è®¾ç½®æ˜¯å¦æ”¯æŒCID
+        ISO_PICC_FWT = 0x0001 << ISO_ATQB_PLINFO_FWI;                           //è®¾ç½®é€šä¿¡è¶…æ—¶æ—¶é—´
         if(ISO_PICC_FWT < 0x10)
         {
             ISO_PICC_FWT = 0x10;
@@ -234,7 +234,7 @@ uint8_t ATTRIB(uint8_t *DAT_ATTRIBAnswer, uint16_t *LEN_ATTRIBAnswer)
         {
             ISO_PICC_FWT = 0x4000;
         }
-        ISO_PICC_MFSIZE = TAB_MaximumFarmeSize[ISO_ATQB_PLINFO_MFSIZE];         //ÉèÖÃ×î´óÖ¡³¤¶È
+        ISO_PICC_MFSIZE = TAB_MaximumFarmeSize[ISO_ATQB_PLINFO_MFSIZE];         //è®¾ç½®æœ€å¤§å¸§é•¿åº¦
         if(TxBuad > 0)
         {
             THM3070_SetTxBaud(TxBuad);
@@ -250,11 +250,11 @@ uint8_t ATTRIB(uint8_t *DAT_ATTRIBAnswer, uint16_t *LEN_ATTRIBAnswer)
 
     if(ISO_PICC_CIDSUP)
     {
-        ISO_PCB = 0x0A;                                                         //³õÊ¼PCB,Ö§³ÖCID,PCB=0x0B
+        ISO_PCB = 0x0A;                                                         //åˆå§‹PCB,æ”¯æŒCID,PCB=0x0B
     }
     else
     {
-        ISO_PCB = 0x02;                                                         //³õÊ¼PCB,²»Ö§³ÖCID,PCB=0x03
+        ISO_PCB = 0x02;                                                         //åˆå§‹PCB,ä¸æ”¯æŒCID,PCB=0x03
     }
 
     return RSTST;
@@ -262,10 +262,29 @@ uint8_t ATTRIB(uint8_t *DAT_ATTRIBAnswer, uint16_t *LEN_ATTRIBAnswer)
 }
 
 /*
-¹¦ÄÜ£º  ¸´Î»³¡+TYPEB»½ÐÑ+¼¤»î
-²ÎÊý1£º ´æ·ÅÏìÓ¦µÄATQBÊý¾Ý,±£Ö¤Æä¿Õ¼ä>=12
-²ÎÊý2£º ´æ·ÅÏìÓ¦µÄATQBÊý¾Ý³¤¶È
-·µ»Ø£º  Ö´ÐÐ½á¹û
+åŠŸèƒ½ï¼š  TYPEBä¼‘çœ 
+å‚æ•°1ï¼š å­˜æ”¾å“åº”çš„HALTBæ•°æ®,ä¿è¯å…¶ç©ºé—´>=1+n
+å‚æ•°2ï¼š å­˜æ”¾å“åº”çš„HALTBæ•°æ®é•¿åº¦
+è¿”å›žï¼š  æ‰§è¡Œç»“æžœ
+*/
+uint8_t HALTB(uint8_t *DAT_HALTBAnswer, uint16_t *LEN_HALTBAnswer)
+{
+    uint8_t RSTST;
+
+    uint8_t CMD[5] = {0x50};                                                    //HALTBå‘½ä»¤
+    memcpy(CMD + 1, ISO_ATQB_PUPI, 4);
+
+    THM3070_SendFrame(CMD, 5);
+    RSTST = THM3070_RecvFrame(DAT_HALTBAnswer, LEN_HALTBAnswer);
+
+    return RSTST;
+}
+
+/*
+åŠŸèƒ½ï¼š  å¤ä½åœº+TYPEBå”¤é†’+æ¿€æ´»
+å‚æ•°1ï¼š å­˜æ”¾å“åº”çš„ATQBæ•°æ®,ä¿è¯å…¶ç©ºé—´>=12
+å‚æ•°2ï¼š å­˜æ”¾å“åº”çš„ATQBæ•°æ®é•¿åº¦
+è¿”å›žï¼š  æ‰§è¡Œç»“æžœ
 */
 uint8_t FINDB(uint8_t *DAT_ATQB, uint16_t *LEN_ATQB)
 {
@@ -305,57 +324,57 @@ uint8_t FINDB(uint8_t *DAT_ATQB, uint16_t *LEN_ATQB)
 
 
 /*
-¹¦ÄÜ£º  TYPEAÑ°¿¨
-²ÎÊý1£º ´æ·ÅÏìÓ¦µÄATQAÊý¾Ý,±£Ö¤Æä¿Õ¼ä>=2
-²ÎÊý2£º ´æ·ÅÏìÓ¦µÄATQAÊý¾Ý³¤¶È
-·µ»Ø£º  Ö´ÐÐ½á¹û
+åŠŸèƒ½ï¼š  TYPEAå¯»å¡
+å‚æ•°1ï¼š å­˜æ”¾å“åº”çš„ATQAæ•°æ®,ä¿è¯å…¶ç©ºé—´>=2
+å‚æ•°2ï¼š å­˜æ”¾å“åº”çš„ATQAæ•°æ®é•¿åº¦
+è¿”å›žï¼š  æ‰§è¡Œç»“æžœ
 */
 uint8_t REQA(uint8_t *DAT_ATQA, uint16_t *LEN_ATQA)
 {
     uint8_t RSTST;
 
-    uint8_t CMD[1] = {0x26};                                                    //WUPAÃüÁî
+    uint8_t CMD[1] = {0x26};                                                    //WUPAå‘½ä»¤
 
     ISO_PICC_FWT = 0x05;
-    THM3070_SetFWT(ISO_PICC_FWT);                                               //³¬Ê±Ê±¼äÎª5*330us=1.65ms
-    THM3070_SetTYPEA();                                                         //TYPEAÄ£Ê½
+    THM3070_SetFWT(ISO_PICC_FWT);                                               //è¶…æ—¶æ—¶é—´ä¸º5*330us=1.65ms
+    THM3070_SetTYPEA();                                                         //TYPEAæ¨¡å¼
 
 
-    THM3070_SendFrame(CMD, 1);                                                  //Ð­ÒéÒª¶ÌÖ¡,ÕâÑù·¢ËÍ¾¹È»Ò²¿ÉÒÔ?
+    THM3070_SendFrame(CMD, 1);                                                  //åè®®è¦çŸ­å¸§,è¿™æ ·å‘é€ç«Ÿç„¶ä¹Ÿå¯ä»¥?
     RSTST = THM3070_RecvFrame(DAT_ATQA, LEN_ATQA);
 
     return RSTST;
 }
 
 /*
-¹¦ÄÜ£º  TYPEA»½ÐÑ
-²ÎÊý1£º ´æ·ÅÏìÓ¦µÄATQAÊý¾Ý,±£Ö¤Æä¿Õ¼ä>=2
-²ÎÊý2£º ´æ·ÅÏìÓ¦µÄATQAÊý¾Ý³¤¶È
-·µ»Ø£º  Ö´ÐÐ½á¹û
+åŠŸèƒ½ï¼š  TYPEAå”¤é†’
+å‚æ•°1ï¼š å­˜æ”¾å“åº”çš„ATQAæ•°æ®,ä¿è¯å…¶ç©ºé—´>=2
+å‚æ•°2ï¼š å­˜æ”¾å“åº”çš„ATQAæ•°æ®é•¿åº¦
+è¿”å›žï¼š  æ‰§è¡Œç»“æžœ
 */
 uint8_t WUPA(uint8_t *DAT_ATQA, uint16_t *LEN_ATQA)
 {
     uint8_t RSTST;
 
-    uint8_t CMD[1] = {0x52};                                                    //WUPAÃüÁî
+    uint8_t CMD[1] = {0x52};                                                    //WUPAå‘½ä»¤
 
     ISO_PICC_FWT = 0x05;
-    THM3070_SetFWT(ISO_PICC_FWT);                                               //³¬Ê±Ê±¼äÎª5*330us=1.65ms
-    THM3070_SetTYPEA();                                                         //TYPEAÄ£Ê½
+    THM3070_SetFWT(ISO_PICC_FWT);                                               //è¶…æ—¶æ—¶é—´ä¸º5*330us=1.65ms
+    THM3070_SetTYPEA();                                                         //TYPEAæ¨¡å¼
 
 
-    THM3070_SendFrame(CMD, 1);                                                  //Ð­ÒéÒª¶ÌÖ¡,ÕâÑù·¢ËÍ¾¹È»Ò²¿ÉÒÔ?
+    THM3070_SendFrame(CMD, 1);                                                  //åè®®è¦çŸ­å¸§,è¿™æ ·å‘é€ç«Ÿç„¶ä¹Ÿå¯ä»¥?
     RSTST = THM3070_RecvFrame(DAT_ATQA, LEN_ATQA);
 
     return RSTST;
 }
 
 /*
-¹¦ÄÜ£º  ·¢ËÍ·À³åÍ»Ö¸ÁîÂë,ÄÚ²¿º¯Êý
-²ÎÊý1£º ·À³åÍ»¼¶±ð
-²ÎÊý2£º ·µ»ØµÄÑ¡ÔñÖ¸ÁîÊý¾Ý
-²ÎÊý3£º ·µ»ØµÄÑ¡ÔñÖ¸ÁîÊý¾Ý³¤¶È
-·µ»Ø£º  Ö´ÐÐ½á¹û
+åŠŸèƒ½ï¼š  å‘é€é˜²å†²çªæŒ‡ä»¤ç ,å†…éƒ¨å‡½æ•°
+å‚æ•°1ï¼š é˜²å†²çªçº§åˆ«
+å‚æ•°2ï¼š è¿”å›žçš„é€‰æ‹©æŒ‡ä»¤æ•°æ®
+å‚æ•°3ï¼š è¿”å›žçš„é€‰æ‹©æŒ‡ä»¤æ•°æ®é•¿åº¦
+è¿”å›žï¼š  æ‰§è¡Œç»“æžœ
 */
 static uint8_t SendAC(uint8_t casLevel, uint8_t *selCode, uint16_t *Len_selCode)
 {
@@ -364,32 +383,32 @@ static uint8_t SendAC(uint8_t casLevel, uint8_t *selCode, uint16_t *Len_selCode)
     uint16_t len = 0;
 
     temp[0] = casLevel;                                                         //SEL
-    temp[1] = 0x20;                                                             //NVB=0x20,Ã»ÓÐÒÑÖªµÄUID
+    temp[1] = 0x20;                                                             //NVB=0x20,æ²¡æœ‰å·²çŸ¥çš„UID
     curReceivePostion = lastPostion = 0x00;
 
     while(1)
     {
-        THM3070_SendFrame(temp, curReceivePostion + 2);                         //Ð­ÒéÒª¶ÌÖ¡,ÕâÑù·¢ËÍ¾¹È»Ò²¿ÉÒÔ?
+        THM3070_SendFrame(temp, curReceivePostion + 2);                         //åè®®è¦çŸ­å¸§,è¿™æ ·å‘é€ç«Ÿç„¶ä¹Ÿå¯ä»¥?
         RSTST = THM3070_RecvFrame(temp + lastPostion + 2, &len);
         if(len > 5)
         {
-            len = 5;                                                            //ÏÞÖÆÏÂ³¤¶È
+            len = 5;                                                            //é™åˆ¶ä¸‹é•¿åº¦
         }
 
-        curReceivePostion = lastPostion + len;                                  //×Ü¹²½ÓÊÕµ½µÄÊý¾Ý³¤¶È
+        curReceivePostion = lastPostion + len;                                  //æ€»å…±æŽ¥æ”¶åˆ°çš„æ•°æ®é•¿åº¦
         if(len != 0)
         {
-            lastPostion += len - 1;                                             //È¥³ý×îºó1×Ö½Ú,ÒòÎªËü¿ÉÄÜ´øÓÐ³åÍ»
+            lastPostion += len - 1;                                             //åŽ»é™¤æœ€åŽ1å­—èŠ‚,å› ä¸ºå®ƒå¯èƒ½å¸¦æœ‰å†²çª
         }
 
-        if(RSTST & THM_RSTST_CERR)                                              //ÓÐ³åÍ»
+        if(RSTST & THM_RSTST_CERR)                                              //æœ‰å†²çª
         {
-            delay_ms(6);                                                        //ÐèÒªÑÓÊ±°Ñ³åÍ»Ö®ºóµÄ×Ö½Ú¹ýÂËµô
-            temp[1] = THM3070_ReadREG(THM_REG_BITPOS) + 1;                      //½ÓÊÕµ½µÄ±ÈÌØÎ»³¤¶È,NVBµÍ4Î»
-            temp[1] += (uint8_t)(len + 1) << 4;                                 //½ÓÊÕµ½µÄ×Ö½Ú³¤¶È,NVB¸ß4Î»
-            if((temp[1] & 0x0f) == 0x08)                                        //±ÈÌØÎ»³¤¶ÈÎª8
+            delay_ms(6);                                                        //éœ€è¦å»¶æ—¶æŠŠå†²çªä¹‹åŽçš„å­—èŠ‚è¿‡æ»¤æŽ‰
+            temp[1] = THM3070_ReadREG(THM_REG_BITPOS) + 1;                      //æŽ¥æ”¶åˆ°çš„æ¯”ç‰¹ä½é•¿åº¦,NVBä½Ž4ä½
+            temp[1] += (uint8_t)(len + 1) << 4;                                 //æŽ¥æ”¶åˆ°çš„å­—èŠ‚é•¿åº¦,NVBé«˜4ä½
+            if((temp[1] & 0x0f) == 0x08)                                        //æ¯”ç‰¹ä½é•¿åº¦ä¸º8
             {
-                temp[1] = ((temp[1] & 0xf0) + 0x10);                            //±ÈÌØÎ»ÇåÁã,×Ö½Ú+1
+                temp[1] = ((temp[1] & 0xf0) + 0x10);                            //æ¯”ç‰¹ä½æ¸…é›¶,å­—èŠ‚+1
                 lastPostion = (lastPostion + 1);                                //+1
             }
         }
@@ -397,8 +416,8 @@ static uint8_t SendAC(uint8_t casLevel, uint8_t *selCode, uint16_t *Len_selCode)
         {
             if(lastPostion == 4)
             {
-                memcpy(selCode + 2, temp + 2, 5);                               //Ã»ÓÐ³åÍ»,¹¹ÔìÑ¡ÔñÖ¸ÁîÊý¾Ý
-                *Len_selCode = 7;                                               //³¤¶ÈÎª7
+                memcpy(selCode + 2, temp + 2, 5);                               //æ²¡æœ‰å†²çª,æž„é€ é€‰æ‹©æŒ‡ä»¤æ•°æ®
+                *Len_selCode = 7;                                               //é•¿åº¦ä¸º7
 
                 return THM_RSTST_FEND;
             }
@@ -409,20 +428,20 @@ static uint8_t SendAC(uint8_t casLevel, uint8_t *selCode, uint16_t *Len_selCode)
         }
         else
         {
-            return RSTST;                                                       //·µ»Ø
+            return RSTST;                                                       //è¿”å›ž
         }
     }
 }
 
 /*
-¹¦ÄÜ£º  TYPEA·À³åÍ»+Ñ¡Ôñ
-²ÎÊý1£º ¿¨UID,±£Ö¤Æä¿Õ¼ä>=10
-²ÎÊý2£º ¿¨UID³¤¶È
-·µ»Ø£º  Ö´ÐÐ½á¹û
+åŠŸèƒ½ï¼š  TYPEAé˜²å†²çª+é€‰æ‹©
+å‚æ•°1ï¼š å¡UID,ä¿è¯å…¶ç©ºé—´>=10
+å‚æ•°2ï¼š å¡UIDé•¿åº¦
+è¿”å›žï¼š  æ‰§è¡Œç»“æžœ
 */
 uint8_t AnticollAndSelect(uint8_t *DAT_UID, uint16_t *LEN_UID)
 {
-    uint8_t *UIDTemp = ISO_SDataTemp;                                           //ÔÝ´æÊÕµ½µÄUID,¿ÉÄÜ°üº¬Á¬½Ó×Ö·ûCT=0x88
+    uint8_t *UIDTemp = ISO_SDataTemp;                                           //æš‚å­˜æ”¶åˆ°çš„UID,å¯èƒ½åŒ…å«è¿žæŽ¥å­—ç¬¦CT=0x88
 
     uint8_t RSTST, CASLEVEL = 0x93;
     uint8_t *selCode = ISO_SDataTemp + 64;
@@ -431,14 +450,14 @@ uint8_t AnticollAndSelect(uint8_t *DAT_UID, uint16_t *LEN_UID)
 
     *LEN_UID = 0x00;
     ISO_PICC_FWT = 0x10;
-    THM3070_SetFWT(ISO_PICC_FWT);                                               //³¬Ê±Ê±¼äÎª16*330us=5.28ms
+    THM3070_SetFWT(ISO_PICC_FWT);                                               //è¶…æ—¶æ—¶é—´ä¸º16*330us=5.28ms
 
     for(i = 0; i < 3; i++)
     {
         count = 3;
         while(count--)
         {
-            RSTST = SendAC(CASLEVEL, selCode, &len);                            //·¢ËÍSEL=0x93/0x95/0x97
+            RSTST = SendAC(CASLEVEL, selCode, &len);                            //å‘é€SEL=0x93/0x95/0x97
             if(RSTST == THM_RSTST_FEND)
             {
                 break;
@@ -446,7 +465,7 @@ uint8_t AnticollAndSelect(uint8_t *DAT_UID, uint16_t *LEN_UID)
         }
         if(RSTST == THM_RSTST_FEND)
         {
-            memcpy(UIDTemp + i * 5, selCode + 2, 5);                            //½ØÈ¡³öUID,¿ÉÄÜ°üº¬CT
+            memcpy(UIDTemp + i * 5, selCode + 2, 5);                            //æˆªå–å‡ºUID,å¯èƒ½åŒ…å«CT
         }
         else
         {
@@ -457,10 +476,10 @@ uint8_t AnticollAndSelect(uint8_t *DAT_UID, uint16_t *LEN_UID)
         while(count--)
         {
             selCode[0] = CASLEVEL;
-            selCode[1] = 0x70;                                                  //Ñ¡Ôñ
+            selCode[1] = 0x70;                                                  //é€‰æ‹©
             THM3070_SendFrame(selCode, 7);                                      //
             selCode[0] = 0;
-            RSTST = THM3070_RecvFrame(selCode, &len);                           //ÏìÓ¦SAK
+            RSTST = THM3070_RecvFrame(selCode, &len);                           //å“åº”SAK
             if(RSTST == THM_RSTST_FEND)
             {
                 break;
@@ -468,14 +487,14 @@ uint8_t AnticollAndSelect(uint8_t *DAT_UID, uint16_t *LEN_UID)
         }
         if(RSTST == THM_RSTST_FEND)
         {
-            if((selCode[0] & 0x04) != 0x00)                                     //SAKµÚ3Î»Îª1±íÃ÷UID²»ÍêÕû
+            if((selCode[0] & 0x04) != 0x00)                                     //SAKç¬¬3ä½ä¸º1è¡¨æ˜ŽUIDä¸å®Œæ•´
             {
-                CASLEVEL += 2;                                                  //½øÈëÏÂÒ»¼¶
-                memcpy(DAT_UID + i * 3, UIDTemp + i * 5 + 1, 3);                //½ØÈ¡³öÕæÕýUID
+                CASLEVEL += 2;                                                  //è¿›å…¥ä¸‹ä¸€çº§
+                memcpy(DAT_UID + i * 3, UIDTemp + i * 5 + 1, 3);                //æˆªå–å‡ºçœŸæ­£UID
             }
             else
             {
-                memcpy(DAT_UID + i * 3, UIDTemp + i * 5, 4);                    //UIDÍêÕû,½ØÈ¡³öUID
+                memcpy(DAT_UID + i * 3, UIDTemp + i * 5, 4);                    //UIDå®Œæ•´,æˆªå–å‡ºUID
                 break;
             }
         }
@@ -484,26 +503,26 @@ uint8_t AnticollAndSelect(uint8_t *DAT_UID, uint16_t *LEN_UID)
             return RSTST;
         }
     }
-    *LEN_UID = 4 + i * 3;                                                       //UID³¤¶È4/7/10
-    memcpy(ISO_UID, DAT_UID, *LEN_UID);                                         //±£´æUID
+    *LEN_UID = 4 + i * 3;                                                       //UIDé•¿åº¦4/7/10
+    memcpy(ISO_UID, DAT_UID, *LEN_UID);                                         //ä¿å­˜UID
 
     return RSTST;
 }
 
 /*
-¹¦ÄÜ£º  TYPEA¼¤»î
-²ÎÊý1£º ¿¨·µ»ØµÄATS,±£Ö¤Æä¿Õ¼ä>=5+n
-²ÎÊý2£º ATSµÄ³¤¶È
-·µ»Ø£º  Ö´ÐÐ½á¹û
+åŠŸèƒ½ï¼š  TYPEAæ¿€æ´»
+å‚æ•°1ï¼š å¡è¿”å›žçš„ATS,ä¿è¯å…¶ç©ºé—´>=5+n
+å‚æ•°2ï¼š ATSçš„é•¿åº¦
+è¿”å›žï¼š  æ‰§è¡Œç»“æžœ
 */
 uint8_t RATS(uint8_t *DAT_ATS, uint16_t *LEN_ATS)
 {
     uint8_t RSTST;
 
-    uint8_t CMD[2] = {0xE0, 0x80};                                              //RATSÃüÁî,×î´óÖ¡³¤256,CID=0
+    uint8_t CMD[2] = {0xE0, 0x80};                                              //RATSå‘½ä»¤,æœ€å¤§å¸§é•¿256,CID=0
 
     ISO_PICC_FWT = 0x10;
-    THM3070_SetFWT(ISO_PICC_FWT);                                               //³¬Ê±Ê±¼äÎª16*330us=5ms
+    THM3070_SetFWT(ISO_PICC_FWT);                                               //è¶…æ—¶æ—¶é—´ä¸º16*330us=5ms
 
 
     THM3070_SendFrame(CMD, 2);                                                  //
@@ -511,16 +530,16 @@ uint8_t RATS(uint8_t *DAT_ATS, uint16_t *LEN_ATS)
 
     if(RSTST == THM_RSTST_FEND)
     {
-        memcpy(ISO_ATS, DAT_ATS, *LEN_ATS);                                     //±£´æATS
+        memcpy(ISO_ATS, DAT_ATS, *LEN_ATS);                                     //ä¿å­˜ATS
 
-        ISO_PICC_MFSIZE = TAB_MaximumFarmeSize[ISO_ATS_FSCI];                   //ÉèÖÃ×î´óÖ¡³¤¶È
+        ISO_PICC_MFSIZE = TAB_MaximumFarmeSize[ISO_ATS_FSCI];                   //è®¾ç½®æœ€å¤§å¸§é•¿åº¦
         if(ISO_ATS_TAEN)
         {
             ;
         }
         if(ISO_ATS_TBEN)
         {
-            ISO_PICC_FWT = 0x0001 << ISO_ATS_TB_FWI;                            //ÉèÖÃÍ¨ÐÅ³¬Ê±Ê±¼ä
+            ISO_PICC_FWT = 0x0001 << ISO_ATS_TB_FWI;                            //è®¾ç½®é€šä¿¡è¶…æ—¶æ—¶é—´
             if(ISO_PICC_FWT < 0x10)
             {
                 ISO_PICC_FWT = 0x10;
@@ -529,20 +548,20 @@ uint8_t RATS(uint8_t *DAT_ATS, uint16_t *LEN_ATS)
             {
                 ISO_PICC_FWT = 0x4000;
             }
-            delay_us(0x0001 << ISO_ATS_TB_SFGI);                                //ÑÓÊ±
+            delay_us(0x0001 << ISO_ATS_TB_SFGI);                                //å»¶æ—¶
         }
         if(ISO_ATS_TCEN)
         {
-            ISO_PICC_CIDSUP = ISO_ATS_TC_CIDEN;                                 //ÉèÖÃÊÇ·ñÖ§³ÖCID
+            ISO_PICC_CIDSUP = ISO_ATS_TC_CIDEN;                                 //è®¾ç½®æ˜¯å¦æ”¯æŒCID
         }
 
         if(ISO_PICC_CIDSUP)
         {
-            ISO_PCB = 0x0A;                                                     //³õÊ¼PCB,Ö§³ÖCID,PCB=0x0B
+            ISO_PCB = 0x0A;                                                     //åˆå§‹PCB,æ”¯æŒCID,PCB=0x0B
         }
         else
         {
-            ISO_PCB = 0x02;                                                     //³õÊ¼PCB,²»Ö§³ÖCID,PCB=0x03
+            ISO_PCB = 0x02;                                                     //åˆå§‹PCB,ä¸æ”¯æŒCID,PCB=0x03
         }
 
     }
@@ -551,22 +570,22 @@ uint8_t RATS(uint8_t *DAT_ATS, uint16_t *LEN_ATS)
 }
 
 /*
-¹¦ÄÜ£º  TYPEAPPS
-²ÎÊý1£º ·¢ËÍËÙÂÊ(¶Á¿¨Æ÷·¢ËÍËÙÂÊ,0x00:106kbit/s,0x01:212,0x02:424,0x03:848kbit/s)
-²ÎÊý2£º ½ÓÊÕËÙÂÊ(¶Á¿¨Æ÷½ÓÊÕËÙÂÊ,0x00:106kbit/s,0x01:212,0x02:424,0x03:848kbit/s)
-·µ»Ø£º  Ö´ÐÐ½á¹û
+åŠŸèƒ½ï¼š  TYPEAPPS
+å‚æ•°1ï¼š å‘é€é€ŸçŽ‡(è¯»å¡å™¨å‘é€é€ŸçŽ‡,0x00:106kbit/s,0x01:212,0x02:424,0x03:848kbit/s)
+å‚æ•°2ï¼š æŽ¥æ”¶é€ŸçŽ‡(è¯»å¡å™¨æŽ¥æ”¶é€ŸçŽ‡,0x00:106kbit/s,0x01:212,0x02:424,0x03:848kbit/s)
+è¿”å›žï¼š  æ‰§è¡Œç»“æžœ
 */
 uint8_t PPSS(uint8_t TxBuad, uint8_t RxBuad)
 {
     uint8_t RSTST;
     uint16_t len;
 
-    uint8_t CMD[3] = {0xD0, 0x11, 0x00};                                        //PPSSÃüÁî,CID=0
+    uint8_t CMD[3] = {0xD0, 0x11, 0x00};                                        //PPSSå‘½ä»¤,CID=0
     CMD[2] |= (TxBuad & 0x03);
     CMD[2] |= ((RxBuad & 0x03) << 2);
 
     ISO_PICC_FWT = 0x05;
-    THM3070_SetFWT(ISO_PICC_FWT);                                               //³¬Ê±Ê±¼äÎª5*330us=1.65ms
+    THM3070_SetFWT(ISO_PICC_FWT);                                               //è¶…æ—¶æ—¶é—´ä¸º5*330us=1.65ms
 
     THM3070_SendFrame(CMD, 3);                                                  //
     RSTST = THM3070_RecvFrame(ISO_SDataTemp, &len);
@@ -581,10 +600,10 @@ uint8_t PPSS(uint8_t TxBuad, uint8_t RxBuad)
 }
 
 /*
-¹¦ÄÜ£º  ¸´Î»³¡+TYPEA»½ÐÑ+·À³åÍ»+Ñ¡Ôñ+¼¤»î
-²ÎÊý1£º ¿¨·µ»ØµÄATS,±£Ö¤Æä¿Õ¼ä>=5+n
-²ÎÊý2£º ATSµÄ³¤¶È
-·µ»Ø£º  Ö´ÐÐ½á¹û
+åŠŸèƒ½ï¼š  å¤ä½åœº+TYPEAå”¤é†’+é˜²å†²çª+é€‰æ‹©+æ¿€æ´»
+å‚æ•°1ï¼š å¡è¿”å›žçš„ATS,ä¿è¯å…¶ç©ºé—´>=5+n
+å‚æ•°2ï¼š ATSçš„é•¿åº¦
+è¿”å›žï¼š  æ‰§è¡Œç»“æžœ
 */
 uint8_t FINDA(uint8_t *DAT_ATS, uint16_t *LEN_ATS)
 {
@@ -609,12 +628,12 @@ uint8_t FINDA(uint8_t *DAT_ATS, uint16_t *LEN_ATS)
 
 
 /*
-¹¦ÄÜ£º  ·¢ËÍÔ­Ê¼Êý¾Ý²¢»ñÈ¡ÏìÓ¦
-²ÎÊý1£º ´ý·¢ËÍµÄÊý¾Ý
-²ÎÊý2£º ´ý·¢ËÍµÄÊý¾Ý³¤¶È
-²ÎÊý3£º ½ÓÊÕµ½µÄÊý¾Ý,±£Ö¤Æä¿Õ¼ä×ã¹»
-²ÎÊý4£º ½ÓÊÕµ½µÄÊý¾Ý³¤¶È
-·µ»Ø£º  Ö´ÐÐ½á¹û
+åŠŸèƒ½ï¼š  å‘é€åŽŸå§‹æ•°æ®å¹¶èŽ·å–å“åº”
+å‚æ•°1ï¼š å¾…å‘é€çš„æ•°æ®
+å‚æ•°2ï¼š å¾…å‘é€çš„æ•°æ®é•¿åº¦
+å‚æ•°3ï¼š æŽ¥æ”¶åˆ°çš„æ•°æ®,ä¿è¯å…¶ç©ºé—´è¶³å¤Ÿ
+å‚æ•°4ï¼š æŽ¥æ”¶åˆ°çš„æ•°æ®é•¿åº¦
+è¿”å›žï¼š  æ‰§è¡Œç»“æžœ
 */
 uint8_t ExchangeData(uint8_t *sData, uint16_t len_sData, uint8_t *rData, uint16_t *len_rData)
 {
@@ -630,11 +649,11 @@ uint8_t ExchangeData(uint8_t *sData, uint16_t len_sData, uint8_t *rData, uint16_
 
 
 /*
-¹¦ÄÜ£º  ¹¹Ôì·¢ËÍ¿é,ÄÚ²¿º¯Êý
-²ÎÊý1£º ¹¹ÔìºÃµÄ¿é,±£Ö¤Æä¿Õ¼ä>=len+2
-²ÎÊý2£º ´ø´¦ÀíµÄÊý¾Ý
-²ÎÊý3£º ´ø´¦ÀíµÄÊý¾Ý¼°¹¹ÔìºÃºóµÄ¿é³¤¶È
-·µ»Ø£º  ÎÞ
+åŠŸèƒ½ï¼š  æž„é€ å‘é€å—,å†…éƒ¨å‡½æ•°
+å‚æ•°1ï¼š æž„é€ å¥½çš„å—,ä¿è¯å…¶ç©ºé—´>=len+2
+å‚æ•°2ï¼š å¸¦å¤„ç†çš„æ•°æ®
+å‚æ•°3ï¼š å¸¦å¤„ç†çš„æ•°æ®åŠæž„é€ å¥½åŽçš„å—é•¿åº¦
+è¿”å›žï¼š  æ— 
 */
 static void formBlock(uint8_t *block, const uint8_t *sData, uint16_t *len)
 {
@@ -642,13 +661,13 @@ static void formBlock(uint8_t *block, const uint8_t *sData, uint16_t *len)
 
     if(ISO_PICC_CIDSUP)
     {
-        for(i = *len + 2; i > 1; i--)                                           //Ñ­»·ÒÆÎ»
+        for(i = *len + 2; i > 1; i--)                                           //å¾ªçŽ¯ç§»ä½
         {
-            block[i] = sData[i - 2];                                            //´Ó×îºóÍùÇ°,·ÀÖ¹Í¬µØÖ·³ö´í
+            block[i] = sData[i - 2];                                            //ä»Žæœ€åŽå¾€å‰,é˜²æ­¢åŒåœ°å€å‡ºé”™
         }
-        block[0] = 0x00;                                                        //PCDÇå0
-        block[1] = 0x00;                                                        //CIDÎª0
-        *len += 2;                                                              //³¤¶È+PCB+CID
+        block[0] = 0x00;                                                        //PCDæ¸…0
+        block[1] = 0x00;                                                        //CIDä¸º0
+        *len += 2;                                                              //é•¿åº¦+PCB+CID
     }
     else
     {
@@ -656,173 +675,173 @@ static void formBlock(uint8_t *block, const uint8_t *sData, uint16_t *len)
         {
             block[i] = sData[i - 1];
         }
-        block[0] = 0x00;                                                        //PCDÇå0
-        *len += 1;                                                              //³¤¶È+PCB
+        block[0] = 0x00;                                                        //PCDæ¸…0
+        *len += 1;                                                              //é•¿åº¦+PCB
     }
 }
 
 /*
-¹¦ÄÜ£º  ·¢ËÍAPDUÃüÁî,³ö´íÖØ·¢Ò»´Î
-²ÎÊý1£º Òª·¢ËÍµÄAPDUÊý¾Ý
-²ÎÊý2£º Òª·¢ËÍµÄÊý¾Ý³¤¶È
-²ÎÊý3£º ½ÓÊÕµ½µÄÊý¾Ý,±£Ö¤Æä¿Õ¼ä×ã¹»
-²ÎÊý4£º ½ÓÊÕµ½µÄÊý¾Ý³¤¶È
-·µ»Ø£º  Ö´ÐÐ½á¹û
+åŠŸèƒ½ï¼š  å‘é€APDUå‘½ä»¤,å‡ºé”™é‡å‘ä¸€æ¬¡
+å‚æ•°1ï¼š è¦å‘é€çš„APDUæ•°æ®
+å‚æ•°2ï¼š è¦å‘é€çš„æ•°æ®é•¿åº¦
+å‚æ•°3ï¼š æŽ¥æ”¶åˆ°çš„æ•°æ®,ä¿è¯å…¶ç©ºé—´è¶³å¤Ÿ
+å‚æ•°4ï¼š æŽ¥æ”¶åˆ°çš„æ•°æ®é•¿åº¦
+è¿”å›žï¼š  æ‰§è¡Œç»“æžœ
 */
 uint8_t ExchangeAPDU(uint8_t *sData, uint16_t len_sData, uint8_t *rData, uint16_t *len_rData)
 {
-    uint8_t e1, e2, e3;                                                         //´íÎó
+    uint8_t e1, e2, e3;                                                         //é”™è¯¯
 
-    uint8_t RSTST = THM_RSTST_TMROVER;                                          //·¢ËÍ×´Ì¬
+    uint8_t RSTST = THM_RSTST_TMROVER;                                          //å‘é€çŠ¶æ€
     uint16_t SendLen1, SendLen2, RecvLen = 0, Temp, LenTemp;
 
-    SendLen1 = len_sData;                                                       //·¢ËÍÊý¾Ý³¤¶È
+    SendLen1 = len_sData;                                                       //å‘é€æ•°æ®é•¿åº¦
     SendLen2 = SendLen1;
-    while(SendLen1)                                                             //ÅÐ¶Ï³¤¶ÈÑ­»··¢ËÍ
+    while(SendLen1)                                                             //åˆ¤æ–­é•¿åº¦å¾ªçŽ¯å‘é€
     {
         e1 = e2 = e3 = 0;
 
-        if(ISO_PICC_CIDSUP)                                                     //CID¸úËæ
+        if(ISO_PICC_CIDSUP)                                                     //CIDè·Ÿéš
         {
-            Temp = ISO_PICC_MFSIZE - 4;                                         //×î´óÖ¡³¤-PCD-CID-2CRC
+            Temp = ISO_PICC_MFSIZE - 4;                                         //æœ€å¤§å¸§é•¿-PCD-CID-2CRC
         }
         else
         {
-            Temp = ISO_PICC_MFSIZE - 3;                                         //×î´óÖ¡³¤-PCD-2CRC
+            Temp = ISO_PICC_MFSIZE - 3;                                         //æœ€å¤§å¸§é•¿-PCD-2CRC
         }
-        if(SendLen1 > Temp)                                                     //³¤¶È>×î´óÖ¡³¤
+        if(SendLen1 > Temp)                                                     //é•¿åº¦>æœ€å¤§å¸§é•¿
         {
-            SendLen1 -= Temp;                                                   //³¤¶È-
-            formBlock(ISO_SDataTemp, sData, &Temp);                             //Êý¾ÝÍùºóÒÆÎ»,½«µÚ1×Ö½ÚPCBÈÃ³öÀ´
+            SendLen1 -= Temp;                                                   //é•¿åº¦-
+            formBlock(ISO_SDataTemp, sData, &Temp);                             //æ•°æ®å¾€åŽç§»ä½,å°†ç¬¬1å­—èŠ‚PCBè®©å‡ºæ¥
 
-            ISO_SDataTemp[0] = ISO_PCB;                                         //¸³ÖµPCB
-            ISO_SDataTemp[0] |= 0x10;                                           //·¢ËÍÁ´½Ó,ÒòÎªÊý¾Ý³¤Ò»´Î·¢ËÍ²»Íê,ËùÒÔÁ´½Ó·¢ËÍ
+            ISO_SDataTemp[0] = ISO_PCB;                                         //èµ‹å€¼PCB
+            ISO_SDataTemp[0] |= 0x10;                                           //å‘é€é“¾æŽ¥,å› ä¸ºæ•°æ®é•¿ä¸€æ¬¡å‘é€ä¸å®Œ,æ‰€ä»¥é“¾æŽ¥å‘é€
 
         }
         else
         {
-            Temp = SendLen1;                                                    //¼ÇÂ¼³¤¶È
-            SendLen1 = 0;                                                       //³¤¶ÈÎª0
+            Temp = SendLen1;                                                    //è®°å½•é•¿åº¦
+            SendLen1 = 0;                                                       //é•¿åº¦ä¸º0
             formBlock(ISO_SDataTemp, sData, &Temp);
 
-            ISO_SDataTemp[0] = ISO_PCB;                                         //¸³ÖµPCB
-            ISO_SDataTemp[0] &= 0xEF;                                           //²»Á´½Ó
+            ISO_SDataTemp[0] = ISO_PCB;                                         //èµ‹å€¼PCB
+            ISO_SDataTemp[0] &= 0xEF;                                           //ä¸é“¾æŽ¥
         }
-        RSTST = ExchangeData(ISO_SDataTemp, Temp, rData + RecvLen, len_rData);  //·¢ËÍ
+        RSTST = ExchangeData(ISO_SDataTemp, Temp, rData + RecvLen, len_rData);  //å‘é€
 sok:
-        if(RSTST == THM_RSTST_FEND)                                             //³É¹¦
+        if(RSTST == THM_RSTST_FEND)                                             //æˆåŠŸ
         {
-            uint8_t chaining = 0;                                               //½ÓÊÕÊÇ·ñÁ´½Ó,Ä¬ÈÏ²»Á´½Ó
+            uint8_t chaining = 0;                                               //æŽ¥æ”¶æ˜¯å¦é“¾æŽ¥,é»˜è®¤ä¸é“¾æŽ¥
             while(1)
             {
-                if(RSTST == THM_RSTST_FEND)                                     //³É¹¦
+                if(RSTST == THM_RSTST_FEND)                                     //æˆåŠŸ
                 {
-                    chaining = 0;                                               //²»Á´½Ó
+                    chaining = 0;                                               //ä¸é“¾æŽ¥
 
-                    Temp = RecvLen;                                             //ÔÝ´æÒ»ÏÂ,½ÓÊÕµ½Êý¾ÝÒÆÎ»È¥µôPCBµÄÊ±ºòÒªÓÃ
-                    ISO_SDataTemp[0] = rData[RecvLen];                          //»ñÈ¡½ÓÊÕµ½µÄPCB
+                    Temp = RecvLen;                                             //æš‚å­˜ä¸€ä¸‹,æŽ¥æ”¶åˆ°æ•°æ®ç§»ä½åŽ»æŽ‰PCBçš„æ—¶å€™è¦ç”¨
+                    ISO_SDataTemp[0] = rData[RecvLen];                          //èŽ·å–æŽ¥æ”¶åˆ°çš„PCB
 
-                    if((ISO_SDataTemp[0] | 0x3F) == 0x3F)                       //ÎªI¿é,¸ß2Î»Îª0
+                    if((ISO_SDataTemp[0] | 0x3F) == 0x3F)                       //ä¸ºIå—,é«˜2ä½ä¸º0
                     {
                         if(ISO_SDataTemp[0] & 0x01)
                         {
-                            ISO_PCB &= 0xFE;                                    //ÊÕµ½I¿é,¿éºÅºÍÊÕµ½µÄÏà·´
+                            ISO_PCB &= 0xFE;                                    //æ”¶åˆ°Iå—,å—å·å’Œæ”¶åˆ°çš„ç›¸å
                         }
                         else
                         {
                             ISO_PCB |= 0x01;
                         }
-                        if((ISO_SDataTemp[0] & 0x10) == 0x10)                   //Á´½Ó,Á´½ÓÎ»Îª1
+                        if((ISO_SDataTemp[0] & 0x10) == 0x10)                   //é“¾æŽ¥,é“¾æŽ¥ä½ä¸º1
                         {
-                            chaining = 1;                                       //Á´½Ó
+                            chaining = 1;                                       //é“¾æŽ¥
                         }
                     }
-                    else if((ISO_SDataTemp[0] & 0xC0) == 0xC0)                  //ÎªS¿é,¸ß2Î»Îª1
+                    else if((ISO_SDataTemp[0] & 0xC0) == 0xC0)                  //ä¸ºSå—,é«˜2ä½ä¸º1
                     {
-                        while((RSTST == THM_RSTST_FEND) && (ISO_SDataTemp[0] & 0xC0) == 0xC0)   //³É¹¦ÇÒ·µ»ØÈÔÎªS¿é
+                        while((RSTST == THM_RSTST_FEND) && (ISO_SDataTemp[0] & 0xC0) == 0xC0)   //æˆåŠŸä¸”è¿”å›žä»ä¸ºSå—
                         {
                             uint8_t swtx[4] = {0xFA, 0x00, 0x00};
                             uint32_t ISO_PICC_FWT_Copy;
 
                             ISO_PICC_FWT_Copy = ISO_PICC_FWT;
 
-                            if(ISO_PICC_CIDSUP)                                 //CIDÊ¹ÄÜ
+                            if(ISO_PICC_CIDSUP)                                 //CIDä½¿èƒ½
                             {
-                                swtx[0] = 0xFA;                                 //CID¸úËæÊ±µÄS¿éPCB
-                                swtx[1] = rData[RecvLen + 1];                   //CIDÊ¹ÓÃ·µ»ØÊý¾ÝÖÐµÄCID
-                                swtx[2] = rData[RecvLen + 2] & 0x3F;            //¹¹Ôì·µ»ØS(SWT)·µ»Ø
-                                swtx[3] = 0x03;                                 //Êý¾Ý³¤¶È
+                                swtx[0] = 0xFA;                                 //CIDè·Ÿéšæ—¶çš„Så—PCB
+                                swtx[1] = rData[RecvLen + 1];                   //CIDä½¿ç”¨è¿”å›žæ•°æ®ä¸­çš„CID
+                                swtx[2] = rData[RecvLen + 2] & 0x3F;            //æž„é€ è¿”å›žS(SWT)è¿”å›ž
+                                swtx[3] = 0x03;                                 //æ•°æ®é•¿åº¦
 
-                                ISO_PICC_FWT = ISO_PICC_FWT * swtx[2];          //¼ÆËãµÈ´ýÊ±¼ä
+                                ISO_PICC_FWT = ISO_PICC_FWT * swtx[2];          //è®¡ç®—ç­‰å¾…æ—¶é—´
                                 if(ISO_PICC_FWT == 0)
                                 {
                                     ISO_PICC_FWT = ISO_PICC_FWT_Copy;
                                 }
-                                if(ISO_PICC_FWT > 0x4000)                       //ÏÞÖÆ
+                                if(ISO_PICC_FWT > 0x4000)                       //é™åˆ¶
                                 {
                                     ISO_PICC_FWT = 0x4000;
                                 }
                             }
                             else
                             {
-                                swtx[0] = 0xF2;                                 //CID²»¸úËæÊ±µÄS¿éPCB
+                                swtx[0] = 0xF2;                                 //CIDä¸è·Ÿéšæ—¶çš„Så—PCB
                                 swtx[1] = rData[RecvLen + 1] & 0x3F;
                                 swtx[3] = 0x02;
 
-                                ISO_PICC_FWT = ISO_PICC_FWT * swtx[2];          //¼ÆËãµÈ´ýÊ±¼ä
+                                ISO_PICC_FWT = ISO_PICC_FWT * swtx[2];          //è®¡ç®—ç­‰å¾…æ—¶é—´
                                 if(ISO_PICC_FWT == 0)
                                 {
                                     ISO_PICC_FWT = ISO_PICC_FWT_Copy;
                                 }
-                                if(ISO_PICC_FWT > 0x4000)                       //ÏÞÖÆ
+                                if(ISO_PICC_FWT > 0x4000)                       //é™åˆ¶
                                 {
                                     ISO_PICC_FWT = 0x4000;
                                 }
                             }
 
-                            RSTST = ExchangeData(swtx, swtx[3], rData + RecvLen, len_rData);    //·¢ËÍ
-                            ISO_PICC_FWT = ISO_PICC_FWT_Copy;                   //µÈ´ýÊ±¼ä»Ö¸´
+                            RSTST = ExchangeData(swtx, swtx[3], rData + RecvLen, len_rData);    //å‘é€
+                            ISO_PICC_FWT = ISO_PICC_FWT_Copy;                   //ç­‰å¾…æ—¶é—´æ¢å¤
                             ISO_SDataTemp[0] = rData[RecvLen];
 
-                            if(RSTST != THM_RSTST_FEND && e2 == 0)              //²»³É¹¦
+                            if(RSTST != THM_RSTST_FEND && e2 == 0)              //ä¸æˆåŠŸ
                             {
                                 e2 = 1;
 
                                 LenTemp = 0;
-                                formBlock(swtx, swtx, &LenTemp);                //¹¹Ôì¿é
+                                formBlock(swtx, swtx, &LenTemp);                //æž„é€ å—
                                 swtx[0] = ISO_PCB;
-                                if(ISO_PICC_CIDSUP)                             //CIDÊ¹ÄÜ
+                                if(ISO_PICC_CIDSUP)                             //CIDä½¿èƒ½
                                 {
                                     swtx[0] |= 0xB8;
-                                    swtx[0] &= 0xBF;                            //¹¹ÔìR¿é(NAK),CIDÎ»ÖÃ1
+                                    swtx[0] &= 0xBF;                            //æž„é€ Rå—(NAK),CIDä½ç½®1
                                 }
                                 else
                                 {
                                     swtx[0] |= 0xB0;
-                                    swtx[0] &= 0xB7;                            //¹¹ÔìR¿é(NAK),CIDÎ»ÖÃ0
+                                    swtx[0] &= 0xB7;                            //æž„é€ Rå—(NAK),CIDä½ç½®0
                                 }
 
-                                RSTST = ExchangeData(swtx, LenTemp, rData + RecvLen, len_rData);    //·¢ËÍ
+                                RSTST = ExchangeData(swtx, LenTemp, rData + RecvLen, len_rData);    //å‘é€
                                 ISO_SDataTemp[0] = rData[RecvLen];
                             }
                         }
                         continue;
                     }
-                    else                                                        //ÎªR¿é
+                    else                                                        //ä¸ºRå—
                     {
                         if(ISO_SDataTemp[0] & 0x01)
                         {
-                            ISO_PCB &= 0xFE;                                    //ÊÕµ½I¿é,¿éºÅºÍÊÕµ½µÄÏà·´
+                            ISO_PCB &= 0xFE;                                    //æ”¶åˆ°Iå—,å—å·å’Œæ”¶åˆ°çš„ç›¸å
                         }
                         else
                         {
                             ISO_PCB |= 0x01;
                         }
-                        if(e1 == 1)                                             //Èç¹ûÉÏ´ÎÓÐ´íÎó,ÊÕµ½R¿é±íÊ¾¿¨ÇëÇóÖØÐÂ·¢ËÍÖ®Ç°·¢ËÍµÄÊý¾Ý
+                        if(e1 == 1)                                             //å¦‚æžœä¸Šæ¬¡æœ‰é”™è¯¯,æ”¶åˆ°Rå—è¡¨ç¤ºå¡è¯·æ±‚é‡æ–°å‘é€ä¹‹å‰å‘é€çš„æ•°æ®
                         {
-                            SendLen1 = SendLen2;                                //»Ö¸´´íÎóÎ»ÖÃÖØÐÂ·¢ËÍ
+                            SendLen1 = SendLen2;                                //æ¢å¤é”™è¯¯ä½ç½®é‡æ–°å‘é€
                         }
-                        break;                                                  //ÉÏ´ÎÎÞ´íÎó,Ìø³ö¼ÌÐø·¢ËÍ
+                        break;                                                  //ä¸Šæ¬¡æ— é”™è¯¯,è·³å‡ºç»§ç»­å‘é€
                     }
                     RecvLen = RecvLen + *len_rData;
                     if(ISO_PICC_CIDSUP)
@@ -830,7 +849,7 @@ sok:
                         RecvLen -= 2;
                         for(; Temp < RecvLen; Temp++)
                         {
-                            rData[Temp] = rData[Temp + 2];                     //ÒÆÎ»È¥µô¿éµÄÍ·
+                            rData[Temp] = rData[Temp + 2];                     //ç§»ä½åŽ»æŽ‰å—çš„å¤´
                         }
                     }
                     else
@@ -841,25 +860,25 @@ sok:
                             rData[Temp] = rData[Temp + 1];
                         }
                     }
-                    SendLen2 = SendLen1;                                        //¼ÇÂ¼·¢ËÍÎ»ÖÃ,ÓÃÓÚ´íÎóÖØ·¢
+                    SendLen2 = SendLen1;                                        //è®°å½•å‘é€ä½ç½®,ç”¨äºŽé”™è¯¯é‡å‘
 
-                    if(!chaining)break;                                         //²»Á´½Ó,Ìø³ö½ÓÊÕ
+                    if(!chaining)break;                                         //ä¸é“¾æŽ¥,è·³å‡ºæŽ¥æ”¶
 
                     LenTemp = 0;
                     formBlock(ISO_SDataTemp, ISO_SDataTemp, &LenTemp);
-                    ISO_SDataTemp[0] = ISO_PCB;                                 //Á´½ÓÐèÒª»ØËÍACK,¹¹ÔìR¿é(ACK)
-                    if(ISO_PICC_CIDSUP)                                         //CIDÊ¹ÄÜ
+                    ISO_SDataTemp[0] = ISO_PCB;                                 //é“¾æŽ¥éœ€è¦å›žé€ACK,æž„é€ Rå—(ACK)
+                    if(ISO_PICC_CIDSUP)                                         //CIDä½¿èƒ½
                     {
                         ISO_SDataTemp[0] |= 0xA8;
-                        ISO_SDataTemp[0] &= 0xAF;                               //¹¹ÔìR¿é(ACK),CIDÎ»ÖÃ1
+                        ISO_SDataTemp[0] &= 0xAF;                               //æž„é€ Rå—(ACK),CIDä½ç½®1
                     }
                     else
                     {
                         ISO_SDataTemp[0] |= 0xA0;
-                        ISO_SDataTemp[0] &= 0xA7;                               //¹¹ÔìR¿é(ACK),CIDÎ»ÖÃ0
+                        ISO_SDataTemp[0] &= 0xA7;                               //æž„é€ Rå—(ACK),CIDä½ç½®0
                     }
 
-                    RSTST = ExchangeData(ISO_SDataTemp, LenTemp, rData + RecvLen, len_rData);   //·¢ËÍACK,¿¨»á½Ó×Å·¢ËÍÏÂÒ»¸öÁ´½ÓÊý¾Ý
+                    RSTST = ExchangeData(ISO_SDataTemp, LenTemp, rData + RecvLen, len_rData);   //å‘é€ACK,å¡ä¼šæŽ¥ç€å‘é€ä¸‹ä¸€ä¸ªé“¾æŽ¥æ•°æ®
                 }//if(RSTST==THM_RSTST_FEND)
                 else
                 {
@@ -869,55 +888,55 @@ sok:
 
                         LenTemp = 0;
                         formBlock(ISO_SDataTemp, ISO_SDataTemp, &LenTemp);
-                        ISO_SDataTemp[0] = ISO_PCB;                             //¹¹ÔìR¿é(ACK)
-                        if(ISO_PICC_CIDSUP)                                     //CIDÊ¹ÄÜ
+                        ISO_SDataTemp[0] = ISO_PCB;                             //æž„é€ Rå—(ACK)
+                        if(ISO_PICC_CIDSUP)                                     //CIDä½¿èƒ½
                         {
                             ISO_SDataTemp[0] |= 0xA8;
-                            ISO_SDataTemp[0] &= 0xAF;                           //¹¹ÔìR¿é(ACK),CIDÎ»ÖÃ1
+                            ISO_SDataTemp[0] &= 0xAF;                           //æž„é€ Rå—(ACK),CIDä½ç½®1
                         }
                         else
                         {
                             ISO_SDataTemp[0] |= 0xA0;
-                            ISO_SDataTemp[0] &= 0xA7;                           //¹¹ÔìR¿é(ACK),CIDÎ»ÖÃ0
+                            ISO_SDataTemp[0] &= 0xA7;                           //æž„é€ Rå—(ACK),CIDä½ç½®0
                         }
 
-                        RSTST = ExchangeData(ISO_SDataTemp, LenTemp, rData + RecvLen, len_rData);   //·¢ËÍACK,ÇëÇó¿¨ÔÙ´Î·¢ËÍÉÏ´ÎÊý¾Ý
+                        RSTST = ExchangeData(ISO_SDataTemp, LenTemp, rData + RecvLen, len_rData);   //å‘é€ACK,è¯·æ±‚å¡å†æ¬¡å‘é€ä¸Šæ¬¡æ•°æ®
 
                         continue;
                     }
                     else
                     {
-                        break;                                                  //½ÓÊÕ½áÊø
+                        break;                                                  //æŽ¥æ”¶ç»“æŸ
                     }
                 }
             }//while(1)
         }//sok:if(RSTST==THM_RSTST_FEND)
-        else                                                                    //µÚÒ»´Î·¢ËÍ,¿¨ÏìÓ¦ÓÐÎÊÌâ
+        else                                                                    //ç¬¬ä¸€æ¬¡å‘é€,å¡å“åº”æœ‰é—®é¢˜
         {
-            if(e1 == 0)                                                         //eÓÃÀ´ÏÞÖÆ´ÎÊý
+            if(e1 == 0)                                                         //eç”¨æ¥é™åˆ¶æ¬¡æ•°
             {
                 e1 = 1;
                 LenTemp = 0;
                 formBlock(ISO_SDataTemp, ISO_SDataTemp, &LenTemp);
-                ISO_SDataTemp[0] = ISO_PCB;                                     //¹¹ÔìR¿é(NAK)
-                if(ISO_PICC_CIDSUP)                                             //CIDÊ¹ÄÜ
+                ISO_SDataTemp[0] = ISO_PCB;                                     //æž„é€ Rå—(NAK)
+                if(ISO_PICC_CIDSUP)                                             //CIDä½¿èƒ½
                 {
                     ISO_SDataTemp[0] |= 0xB8;
-                    ISO_SDataTemp[0] &= 0xBF;                                   //¹¹ÔìR¿é(NAK),CIDÎ»ÖÃ1
+                    ISO_SDataTemp[0] &= 0xBF;                                   //æž„é€ Rå—(NAK),CIDä½ç½®1
                 }
                 else
                 {
                     ISO_SDataTemp[0] |= 0xB0;
-                    ISO_SDataTemp[0] &= 0xB7;                                   //¹¹ÔìR¿é(NAK),CIDÎ»ÖÃ0
+                    ISO_SDataTemp[0] &= 0xB7;                                   //æž„é€ Rå—(NAK),CIDä½ç½®0
                 }
 
-                RSTST = ExchangeData(ISO_SDataTemp, LenTemp, rData + RecvLen, len_rData);   //·¢ËÍNAK,¿¨»áÏìÓ¦ACK»òÕßÉÏ´Î»ØËÍµÄÊý¾ÝI¿é,È¡¾öÓÚÉÏ´ÎË­´íÎó
+                RSTST = ExchangeData(ISO_SDataTemp, LenTemp, rData + RecvLen, len_rData);   //å‘é€NAK,å¡ä¼šå“åº”ACKæˆ–è€…ä¸Šæ¬¡å›žé€çš„æ•°æ®Iå—,å–å†³äºŽä¸Šæ¬¡è°é”™è¯¯
 
-                goto sok;                                                       //Ìøµ½ÅÐ¶Ï
+                goto sok;                                                       //è·³åˆ°åˆ¤æ–­
             }
             else
             {
-                break;                                                          //·¢ËÍ½áÊø
+                break;                                                          //å‘é€ç»“æŸ
             }
         }
 
@@ -928,9 +947,9 @@ sok:
 }
 
 /*
-¹¦ÄÜ£º  ²âÊÔTYPEA¿¨ÊÇ·ñ»¹ÔÚ³¡ÄÚ
-²ÎÊý1£º ÎÞ
-·µ»Ø£º  Ö´ÐÐ½á¹û
+åŠŸèƒ½ï¼š  æµ‹è¯•TYPEAå¡æ˜¯å¦è¿˜åœ¨åœºå†…
+å‚æ•°1ï¼š æ— 
+è¿”å›žï¼š  æ‰§è¡Œç»“æžœ
 */
 uint8_t TESTA()
 {
@@ -938,30 +957,30 @@ uint8_t TESTA()
     uint16_t len;
 
     len = 0;
-    formBlock(swtx, swtx, &len);                                                //¹¹Ôì¿é
+    formBlock(swtx, swtx, &len);                                                //æž„é€ å—
 
-    swtx[0] = ISO_PCB;                                                          //Ê¹ÓÃISO14443ÖÐ2-aµÄ¼ì²â·½Ê½ R(NAK)1 <-> R(ACK)0
-    if(ISO_PICC_CIDSUP)                                                         //CIDÊ¹ÄÜ
+    swtx[0] = ISO_PCB;                                                          //ä½¿ç”¨ISO14443ä¸­2-açš„æ£€æµ‹æ–¹å¼ R(NAK)1 <-> R(ACK)0
+    if(ISO_PICC_CIDSUP)                                                         //CIDä½¿èƒ½
     {
         swtx[0] |= 0xB8;
-        swtx[0] &= 0xBF;                                                        //¹¹ÔìR¿é(NAK),CIDÎ»ÖÃ1
+        swtx[0] &= 0xBF;                                                        //æž„é€ Rå—(NAK),CIDä½ç½®1
     }
     else
     {
         swtx[0] |= 0xB0;
-        swtx[0] &= 0xB7;                                                        //¹¹ÔìR¿é(NAK),CIDÎ»ÖÃ0
+        swtx[0] &= 0xB7;                                                        //æž„é€ Rå—(NAK),CIDä½ç½®0
     }
 
-    RSTST = ExchangeData(swtx, len, ISO_SDataTemp, &len);                       //·¢ËÍ
+    RSTST = ExchangeData(swtx, len, ISO_SDataTemp, &len);                       //å‘é€
 
 
     return RSTST;
 }
 
 /*
-¹¦ÄÜ£º  ²âÊÔTYPEB¿¨ÊÇ·ñ»¹ÔÚ³¡ÄÚ
-²ÎÊý1£º ÎÞ
-·µ»Ø£º  Ö´ÐÐ½á¹û
+åŠŸèƒ½ï¼š  æµ‹è¯•TYPEBå¡æ˜¯å¦è¿˜åœ¨åœºå†…
+å‚æ•°1ï¼š æ— 
+è¿”å›žï¼š  æ‰§è¡Œç»“æžœ
 */
 uint8_t TESTB()
 {
