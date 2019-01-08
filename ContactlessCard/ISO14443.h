@@ -4,11 +4,11 @@
 
 
 /*
-ÎÄ¼şÓÃÍ¾:           ISO14443Ğ­Òé
-×÷Õß:               ÕÅ¶°Åà
-´´½¨Ê±¼ä:           2018/04/20
-¸üĞÂÊ±¼ä:           2018/05/31
-°æ±¾:               V1.2
+æ–‡ä»¶ç”¨é€”:           ISO14443åè®®
+ä½œè€…:               å¼ æ ‹åŸ¹
+åˆ›å»ºæ—¶é—´:           2018/04/20
+æ›´æ–°æ—¶é—´:           2018/05/31
+ç‰ˆæœ¬:               V1.2
 
 */
 
@@ -17,45 +17,46 @@
 #include "stm32f10x.h"
 #include "THM3070.h"
 
-/*ÃüÁîÖ´ĞĞ×´Ì¬*/
-#define ISO_RSTST_CERR                  THM_RSTST_CERR                          //Êı¾İÓĞÅö×²
-#define ISO_RSTST_PERR                  THM_RSTST_PERR                          //ÆæÅ¼Ğ£Ñé´íÎó
-#define ISO_RSTST_FERR                  THM_RSTST_FERR                          //Ö¡¸ñÊ½´íÎó
-#define ISO_RSTST_DATOVER               THM_RSTST_DATOVER                       //½ÓÊÕÊı¾İÒç³ö´íÎó
-#define ISO_RSTST_TMROVER               THM_RSTST_TMROVER                       //½ÓÊÕ³¬Ê±
-#define ISO_RSTST_CRCERR                THM_RSTST_CRCERR                        //CRC´íÎó
-#define ISO_RSTST_FEND                  THM_RSTST_FEND                          //½ÓÊÕÍê³É
+/*å‘½ä»¤æ‰§è¡ŒçŠ¶æ€*/
+#define ISO_RSTST_CERR                  THM_RSTST_CERR                          //æ•°æ®æœ‰ç¢°æ’
+#define ISO_RSTST_PERR                  THM_RSTST_PERR                          //å¥‡å¶æ ¡éªŒé”™è¯¯
+#define ISO_RSTST_FERR                  THM_RSTST_FERR                          //å¸§æ ¼å¼é”™è¯¯
+#define ISO_RSTST_DATOVER               THM_RSTST_DATOVER                       //æ¥æ”¶æ•°æ®æº¢å‡ºé”™è¯¯
+#define ISO_RSTST_TMROVER               THM_RSTST_TMROVER                       //æ¥æ”¶è¶…æ—¶
+#define ISO_RSTST_CRCERR                THM_RSTST_CRCERR                        //CRCé”™è¯¯
+#define ISO_RSTST_FEND                  THM_RSTST_FEND                          //æ¥æ”¶å®Œæˆ
 
 
 
 
-extern uint8_t ISO_PICC_CIDSUP;                                                 //¿¨ÊÇ·ñÖ§³ÖCID,Ä¬ÈÏÖ§³Ö
-extern uint32_t ISO_PICC_FWT;                                                   //Í¨ĞÅµÈ´ı³¬Ê±Ê±¼ä,Ä¬ÈÏ5ms
-extern uint16_t ISO_PICC_MFSIZE;                                                //¿¨ÄÜ½ÓÊÕµÄ×î´óÖ¡³¤,Ä¬ÈÏ16
+extern uint8_t ISO_PICC_CIDSUP;                                                 //å¡æ˜¯å¦æ”¯æŒCID,é»˜è®¤æ”¯æŒ
+extern uint32_t ISO_PICC_FWT;                                                   //é€šä¿¡ç­‰å¾…è¶…æ—¶æ—¶é—´,é»˜è®¤5ms
+extern uint16_t ISO_PICC_MFSIZE;                                                //å¡èƒ½æ¥æ”¶çš„æœ€å¤§å¸§é•¿,é»˜è®¤16
 
 
 
-uint8_t REQB(uint8_t slotNum, uint8_t *DAT_ATQB, uint16_t *LEN_ATQB);           //TYPEBÑ°¿¨
-uint8_t WUPB(uint8_t slotNum, uint8_t *DAT_ATQB, uint16_t *LEN_ATQB);           //TYPEB»½ĞÑ
-uint8_t SlotMARKER(uint8_t slotIndex, uint8_t *DAT_ATQB, uint16_t *LEN_ATQB);   //TYPEB·¢ËÍÊ±¼ä²Û
-uint8_t ATTRIB(uint8_t *DAT_ATTRIBAnswer, uint16_t *LEN_ATTRIBAnswer);          //TYPEB¼¤»î
+uint8_t REQB(uint8_t slotNum, uint8_t *DAT_ATQB, uint16_t *LEN_ATQB);           //TYPEBå¯»å¡
+uint8_t WUPB(uint8_t slotNum, uint8_t *DAT_ATQB, uint16_t *LEN_ATQB);           //TYPEBå”¤é†’
+uint8_t SlotMARKER(uint8_t slotIndex, uint8_t *DAT_ATQB, uint16_t *LEN_ATQB);   //TYPEBå‘é€æ—¶é—´æ§½
+uint8_t ATTRIB(uint8_t *DAT_ATTRIBAnswer, uint16_t *LEN_ATTRIBAnswer);          //TYPEBæ¿€æ´»
+uint8_t HALTB(uint8_t *DAT_HALTBAnswer, uint16_t *LEN_HALTBAnswer);             //TYPEBä¼‘çœ 
 
-uint8_t FINDB(uint8_t *DAT_ATQB, uint16_t *LEN_ATQB);                           //TYPEB»½ĞÑ+¼¤»î
-uint8_t TESTB(void);                                                            //²âÊÔTYPEB¿¨ÊÇ·ñ»¹ÔÚ³¡ÄÚ
-
-
-uint8_t REQA(uint8_t *DAT_ATQA, uint16_t *LEN_ATQA);                            //TYPEAÑ°¿¨
-uint8_t WUPA(uint8_t *DAT_ATQA, uint16_t *LEN_ATQA);                            //TYPEA»½ĞÑ
-uint8_t AnticollAndSelect(uint8_t *DAT_UID, uint16_t *LEN_UID);                 //TYPEA·À³åÍ»ºÍÑ¡¿¨
-uint8_t RATS(uint8_t *DAT_ATS, uint16_t *LEN_ATS);                              //TYPEA¼¤»î
-uint8_t PPSS(uint8_t TxBuad, uint8_t RxBuad);                                   //TYPEA¿¨PPS
-
-uint8_t FINDA(uint8_t *DAT_ATS, uint16_t *LEN_ATS);                             //TYPEA»½ĞÑ+·À³åÍ»+Ñ¡Ôñ+¼¤»î
-uint8_t TESTA(void);                                                            //²âÊÔTYPEA¿¨ÊÇ·ñ»¹ÔÚ³¡ÄÚ
+uint8_t FINDB(uint8_t *DAT_ATQB, uint16_t *LEN_ATQB);                           //TYPEBå”¤é†’+æ¿€æ´»
+uint8_t TESTB(void);                                                            //æµ‹è¯•TYPEBå¡æ˜¯å¦è¿˜åœ¨åœºå†…
 
 
-uint8_t ExchangeAPDU(uint8_t *sData, uint16_t len_sData, uint8_t *rData, uint16_t *len_rData);  //·¢ËÍAPDUÃüÁî²¢»ñÈ¡ÏìÓ¦,²ÎÕÕ14443Ğ­Òé×Ô¶¯Á´½Ó,³ö´íÖ»ÖØ·¢Ò»´Î
-uint8_t ExchangeData(uint8_t *sData, uint16_t len_sData, uint8_t *rData, uint16_t *len_rData);  //·¢ËÍÔ­Ê¼Êı¾İ²¢»ñÈ¡ÏìÓ¦
+uint8_t REQA(uint8_t *DAT_ATQA, uint16_t *LEN_ATQA);                            //TYPEAå¯»å¡
+uint8_t WUPA(uint8_t *DAT_ATQA, uint16_t *LEN_ATQA);                            //TYPEAå”¤é†’
+uint8_t AnticollAndSelect(uint8_t *DAT_UID, uint16_t *LEN_UID);                 //TYPEAé˜²å†²çªå’Œé€‰å¡
+uint8_t RATS(uint8_t *DAT_ATS, uint16_t *LEN_ATS);                              //TYPEAæ¿€æ´»
+uint8_t PPSS(uint8_t TxBuad, uint8_t RxBuad);                                   //TYPEAå¡PPS
+
+uint8_t FINDA(uint8_t *DAT_ATS, uint16_t *LEN_ATS);                             //TYPEAå”¤é†’+é˜²å†²çª+é€‰æ‹©+æ¿€æ´»
+uint8_t TESTA(void);                                                            //æµ‹è¯•TYPEAå¡æ˜¯å¦è¿˜åœ¨åœºå†…
+
+
+uint8_t ExchangeAPDU(uint8_t *sData, uint16_t len_sData, uint8_t *rData, uint16_t *len_rData);  //å‘é€APDUå‘½ä»¤å¹¶è·å–å“åº”,å‚ç…§14443åè®®è‡ªåŠ¨é“¾æ¥,å‡ºé”™åªé‡å‘ä¸€æ¬¡
+uint8_t ExchangeData(uint8_t *sData, uint16_t len_sData, uint8_t *rData, uint16_t *len_rData);  //å‘é€åŸå§‹æ•°æ®å¹¶è·å–å“åº”
 
 
 
