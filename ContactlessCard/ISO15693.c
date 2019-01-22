@@ -185,7 +185,8 @@ uint8_t Stayquiet()
     memcpy(ISO_SendTemp + 2, ISO_UIDTemp, 0x08);                                //UID是强制的
 
     THM3070_SendFrame_V(ISO_SendTemp, 0x0A);
-    THM3070_RecvFrame_V(ISO_SendTemp, &len);
+    //THM3070_RecvFrame_V(ISO_SendTemp, &len);
+    delay_ms(5);
 
     return THM_RSTST_FEND;
 }
