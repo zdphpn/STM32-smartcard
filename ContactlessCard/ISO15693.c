@@ -3,32 +3,32 @@
 
 
 /*
-ÎÄ¼şÓÃÍ¾:           ISO15693Ğ­Òé
-×÷Õß:               ÕÅ¶°Åà
-´´½¨Ê±¼ä:           2018/10/22
-¸üĞÂÊ±¼ä:           2018/10/22
-°æ±¾:               V1.0
+æ–‡ä»¶ç”¨é€”:           ISO15693åè®®
+ä½œè€…:               å¼ æ ‹åŸ¹
+åˆ›å»ºæ—¶é—´:           2018/10/22
+æ›´æ–°æ—¶é—´:           2018/10/22
+ç‰ˆæœ¬:               V1.0
 
-ÀúÊ·°æ±¾:           V1.0:»ùÓÚTHM3070ÊµÏÖISO45693Ğ­Òé
+å†å²ç‰ˆæœ¬:           V1.0:åŸºäºTHM3070å®ç°ISO45693åè®®
 
 
 */
 
 
-static uint8_t ISO_SelectFlag = 0;                                              //¿¨Æ¬ÊÇ·ñ´¦ÔÚÑ¡ÔñÌ¬
-static uint8_t ISO_UIDTemp[10];                                                 //Ôİ´æ¿¨Æ¬UID
-static uint8_t ISO_SendTemp[32];                                                //·¢ËÍ½ÓÊÕÊı¾İ»º´æ
+static uint8_t ISO_SelectFlag = 0;                                              //å¡ç‰‡æ˜¯å¦å¤„åœ¨é€‰æ‹©æ€
+static uint8_t ISO_UIDTemp[10];                                                 //æš‚å­˜å¡ç‰‡UID
+static uint8_t ISO_SendTemp[32];                                                //å‘é€æ¥æ”¶æ•°æ®ç¼“å­˜
 
 #include "string.h"
 
 
 /*
-¹¦ÄÜ£º  ·À³åÍ»
-²ÎÊı1£º ÒÑÖªµÄUIDÊı¾İ
-²ÎÊı2£º ÒÑÖªµÄUIDÎ»Êı
-²ÎÊı3£º ±£´æUIDµÄ¿Õ¼ä
-²ÎÊı4£º ÆôÓÃAFI(¸ß8)|AFI(µÍ8)
-·µ»Ø£º  Ö´ĞĞ½á¹û
+åŠŸèƒ½ï¼š  é˜²å†²çª
+å‚æ•°1ï¼š å·²çŸ¥çš„UIDæ•°æ®
+å‚æ•°2ï¼š å·²çŸ¥çš„UIDä½æ•°
+å‚æ•°3ï¼š ä¿å­˜UIDçš„ç©ºé—´
+å‚æ•°4ï¼š å¯ç”¨AFI(é«˜8)|AFI(ä½8)
+è¿”å›ï¼š  æ‰§è¡Œç»“æœ
 */
 static uint8_t collision(uint8_t *maskData, uint8_t maskLen, uint8_t *DAT_UID, uint16_t AFIEN)
 {
@@ -37,12 +37,12 @@ static uint8_t collision(uint8_t *maskData, uint8_t maskLen, uint8_t *DAT_UID, u
 
     uint8_t maskDataT[8], maskLenT;
 
-    if(maskLen > 64)                                                            //×î´ó64Î»
+    if(maskLen > 64)                                                            //æœ€å¤§64ä½
     {
         return THM_RSTST_TMROVER;
     }
 
-    maskLenT = maskLen;                                                         //Ôİ´æmaskÎ»³¤¶È
+    maskLenT = maskLen;                                                         //æš‚å­˜maskä½é•¿åº¦
 
     if(AFIEN > 0x00FF)
     {
@@ -53,12 +53,12 @@ static uint8_t collision(uint8_t *maskData, uint8_t maskLen, uint8_t *DAT_UID, u
         len = maskLen / 8;
         if(maskLen % 8 > 0)
         {
-            len += 1;                                                           //¼ÆËã×Ö½Ú³¤¶È
+            len += 1;                                                           //è®¡ç®—å­—èŠ‚é•¿åº¦
         }
         memcpy(ISO_SendTemp + 4, maskData, len);
         if(len > 0)
         {
-            memcpy(maskDataT, maskData, len);                                   //Ôİ´æmaskÊı¾İ
+            memcpy(maskDataT, maskData, len);                                   //æš‚å­˜maskæ•°æ®
         }
         len += 4;
 
@@ -71,60 +71,60 @@ static uint8_t collision(uint8_t *maskData, uint8_t maskLen, uint8_t *DAT_UID, u
         len = maskLen / 8;
         if(maskLen % 8 > 0)
         {
-            len += 1;                                                           //¼ÆËã×Ö½Ú³¤¶È
+            len += 1;                                                           //è®¡ç®—å­—èŠ‚é•¿åº¦
         }
         memcpy(ISO_SendTemp + 3, maskData, len);
         if(len > 0)
         {
-            memcpy(maskDataT, maskData, len);                                   //Ôİ´æmaskÊı¾İ
+            memcpy(maskDataT, maskData, len);                                   //æš‚å­˜maskæ•°æ®
         }
         len += 3;
     }
 
     THM3070_SendFrame_V(ISO_SendTemp, len);
     RSTST = THM3070_RecvFrame_V(ISO_SendTemp, &len);
-    if(RSTST == THM_RSTST_FEND)                                                 //³É¹¦
+    if(RSTST == THM_RSTST_FEND)                                                 //æˆåŠŸ
     {
         memcpy(DAT_UID, ISO_SendTemp + 2, 0x08);
         memcpy(ISO_UIDTemp, ISO_SendTemp + 2, 0x08);
     }
-    else if(RSTST == THM_RSTST_CERR)                                            //³åÍ»
+    else if(RSTST == THM_RSTST_CERR)                                            //å†²çª
     {
         delay_ms(6);
         if(len > 10)
         {
-            len = 10;                                                           //ÏŞÒ»ÏÂ³¤¶È
+            len = 10;                                                           //é™ä¸€ä¸‹é•¿åº¦
         }
-        if(len > 2)                                                             //UID³åÍ»
+        if(len > 2)                                                             //UIDå†²çª
         {
-            memcpy(maskDataT, ISO_SendTemp + 2, len - 2);                       //±£´æÒÑÖªµÄUID
-            maskLenT = THM3070_ReadREG(THM_REG_BITPOS) + 1;                     //»ñÈ¡³åÍ»Î»
+            memcpy(maskDataT, ISO_SendTemp + 2, len - 2);                       //ä¿å­˜å·²çŸ¥çš„UID
+            maskLenT = THM3070_ReadREG(THM_REG_BITPOS) + 1;                     //è·å–å†²çªä½
             select = 0x80 >> (maskLenT - 1);
 
-            //maskDataT[len-3]|=select;                                         //ÖÃ1³åÍ»Î»,ÏòÉÏÑ¡ÔñUID
+            //maskDataT[len-3]|=select;                                         //ç½®1å†²çªä½,å‘ä¸Šé€‰æ‹©UID
             //RSTST=collision(maskDataT,maskLenT+(len-3)*8,DAT_UID,AFIEN);
 
-            maskDataT[len - 3] &= (~select);                                    //Çå0³åÍ»Î»,ÏòÏÂÑ¡ÔñUID
-            RSTST = collision(maskDataT, maskLenT + (len - 3) * 8, DAT_UID, AFIEN);  //µİ¹éµ÷ÓÃ
+            maskDataT[len - 3] &= (~select);                                    //æ¸…0å†²çªä½,å‘ä¸‹é€‰æ‹©UID
+            RSTST = collision(maskDataT, maskLenT + (len - 3) * 8, DAT_UID, AFIEN);  //é€’å½’è°ƒç”¨
         }
-        else                                                                    //UIDÇ°³åÍ»(´ËÊ±UID»¹²»ÖªµÀ,¿ÉÒÔÒ»Î»Ò»Î»µÄÔö¼ÓÒÑÖªµÄUIDÎ»Êı(ÖÃÎª0»òÖÃÎª1))
+        else                                                                    //UIDå‰å†²çª(æ­¤æ—¶UIDè¿˜ä¸çŸ¥é“,å¯ä»¥ä¸€ä½ä¸€ä½çš„å¢åŠ å·²çŸ¥çš„UIDä½æ•°(ç½®ä¸º0æˆ–ç½®ä¸º1))
         {
             select = 0x80;
-            maskLenT++;                                                         //maskÎ»³¤¶È+1
+            maskLenT++;                                                         //maskä½é•¿åº¦+1
             len = maskLenT / 8;
             if(maskLenT % 8 > 0)
             {
-                len += 1;                                                       //¼ÆËã×Ö½Ú³¤¶È
+                len += 1;                                                       //è®¡ç®—å­—èŠ‚é•¿åº¦
                 select = 0x10 >> ((maskLenT % 8) - 1);
             }
 
-            maskDataT[len - 1] &= (~select);                                    //ÒÑÖªÎ»×îºóÒ»Î»Çå0
-            RSTST = collision(maskDataT, maskLenT, DAT_UID, AFIEN);             //µİ¹éµ÷ÓÃ
-            if(RSTST == THM_RSTST_TMROVER && ISO_SelectFlag == 0)               //µÚÒ»´Î³öÏÖÃ»ÓĞÏìÓ¦
+            maskDataT[len - 1] &= (~select);                                    //å·²çŸ¥ä½æœ€åä¸€ä½æ¸…0
+            RSTST = collision(maskDataT, maskLenT, DAT_UID, AFIEN);             //é€’å½’è°ƒç”¨
+            if(RSTST == THM_RSTST_TMROVER && ISO_SelectFlag == 0)               //ç¬¬ä¸€æ¬¡å‡ºç°æ²¡æœ‰å“åº”
             {
-                ISO_SelectFlag = 1;                                             //ÉèÖÃ±êÊ¶,±äÁ¿¸´ÓÃÁË×¢Òâ²»ÊÇÖ®Ç°µÄÒâË¼ÁË
-                maskDataT[len - 1] |= select;                                   //ÒÑÖªÎ»×îºóÒ»Î»ÖÃ1(0»ò1×ÜÓĞÒ»¸öÒªÏìÓ¦)
-                RSTST = collision(maskDataT, maskLenT, DAT_UID, AFIEN);         //µİ¹éµ÷ÓÃ
+                ISO_SelectFlag = 1;                                             //è®¾ç½®æ ‡è¯†,å˜é‡å¤ç”¨äº†æ³¨æ„ä¸æ˜¯ä¹‹å‰çš„æ„æ€äº†
+                maskDataT[len - 1] |= select;                                   //å·²çŸ¥ä½æœ€åä¸€ä½ç½®1(0æˆ–1æ€»æœ‰ä¸€ä¸ªè¦å“åº”)
+                RSTST = collision(maskDataT, maskLenT, DAT_UID, AFIEN);         //é€’å½’è°ƒç”¨
             }
         }
     }
@@ -133,16 +133,16 @@ static uint8_t collision(uint8_t *maskData, uint8_t maskLen, uint8_t *DAT_UID, u
 }
 
 /*
-¹¦ÄÜ£º  ²éÕÒ
-²ÎÊı1£º AFIÊ¹ÄÜ(¸ß8)|AFI(µÍ8)
-²ÎÊı1£º ±£´æUIDµÄ¿Õ¼ä
-·µ»Ø£º  Ö´ĞĞ½á¹û
+åŠŸèƒ½ï¼š  æŸ¥æ‰¾
+å‚æ•°1ï¼š AFIä½¿èƒ½(é«˜8)|AFI(ä½8)
+å‚æ•°1ï¼š ä¿å­˜UIDçš„ç©ºé—´
+è¿”å›ï¼š  æ‰§è¡Œç»“æœ
 */
 uint8_t FINDV(uint16_t ENAndAFI, uint8_t *DAT_UID)
 {
     uint8_t RSTST;
 
-    THM3070_RFReset();                                                          //¸´Î»³¡
+    THM3070_RFReset();                                                          //å¤ä½åœº
 
     RSTST = Inventory(ENAndAFI, DAT_UID);
 
@@ -150,21 +150,21 @@ uint8_t FINDV(uint16_t ENAndAFI, uint8_t *DAT_UID)
 }
 
 /*
-¹¦ÄÜ£º  Çå²é
-²ÎÊı1£º AFIÊ¹ÄÜ(¸ß8)|AFI(µÍ8)
-²ÎÊı2£º ±£´æUIDµÄ¿Õ¼ä
-·µ»Ø£º  Ö´ĞĞ½á¹û
+åŠŸèƒ½ï¼š  æ¸…æŸ¥
+å‚æ•°1ï¼š AFIä½¿èƒ½(é«˜8)|AFI(ä½8)
+å‚æ•°2ï¼š ä¿å­˜UIDçš„ç©ºé—´
+è¿”å›ï¼š  æ‰§è¡Œç»“æœ
 */
 uint8_t Inventory(uint16_t ENAndAFI, uint8_t *DAT_UID)
 {
     uint8_t RSTST;
 
     THM3070_SetTYPEV();
-    THM3070_SetFWT(0x05);                                                       //³¬Ê±Ê±¼äÎª5*330us=1.65ms
+    THM3070_SetFWT(0x05);                                                       //è¶…æ—¶æ—¶é—´ä¸º5*330us=1.65ms
 
-    ISO_SelectFlag = 0;                                                         //Ä¬ÈÏµØÖ·Ä£Ê½
+    ISO_SelectFlag = 0;                                                         //é»˜è®¤åœ°å€æ¨¡å¼
     RSTST = collision(0x00, 0x00, DAT_UID, ENAndAFI);
-    ISO_SelectFlag = 0;                                                         //Ä¬ÈÏµØÖ·Ä£Ê½
+    ISO_SelectFlag = 0;                                                         //é»˜è®¤åœ°å€æ¨¡å¼
 
     return RSTST;
 }
@@ -172,25 +172,28 @@ uint8_t Inventory(uint16_t ENAndAFI, uint8_t *DAT_UID)
 
 
 /*
-¹¦ÄÜ£º	¾²Ä¬
-²ÎÊı1£º	ÎŞ
-·µ»Ø£º	Ö´ĞĞ½á¹û
+åŠŸèƒ½ï¼š	é™é»˜
+å‚æ•°1ï¼š	æ— 
+è¿”å›ï¼š	æ‰§è¡Œç»“æœ
 */
 uint8_t Stayquiet()
 {
+    uint16_t len;
+    
     ISO_SendTemp[0x00] = 0x22;
     ISO_SendTemp[0x01] = 0x02;
-    memcpy(ISO_SendTemp + 2, ISO_UIDTemp, 0x08);                                //UIDÊÇÇ¿ÖÆµÄ
+    memcpy(ISO_SendTemp + 2, ISO_UIDTemp, 0x08);                                //UIDæ˜¯å¼ºåˆ¶çš„
 
     THM3070_SendFrame_V(ISO_SendTemp, 0x0A);
+    THM3070_RecvFrame_V(ISO_SendTemp, &len);
 
     return THM_RSTST_FEND;
 }
 
 /*
-¹¦ÄÜ£º  Ñ¡Ôñ
-²ÎÊı1£º ÎŞ
-·µ»Ø£º  Ö´ĞĞ½á¹û
+åŠŸèƒ½ï¼š  é€‰æ‹©
+å‚æ•°1ï¼š æ— 
+è¿”å›ï¼š  æ‰§è¡Œç»“æœ
 */
 uint8_t Select()
 {
@@ -199,7 +202,7 @@ uint8_t Select()
 
     ISO_SendTemp[0x00] = 0x22;
     ISO_SendTemp[0x01] = 0x25;
-    memcpy(ISO_SendTemp + 2, ISO_UIDTemp, 0x08);                                //UIDÊÇÇ¿ÖÆµÄ
+    memcpy(ISO_SendTemp + 2, ISO_UIDTemp, 0x08);                                //UIDæ˜¯å¼ºåˆ¶çš„
 
     THM3070_SendFrame_V(ISO_SendTemp, 0x0A);
     RSTST = THM3070_RecvFrame_V(ISO_SendTemp, &len);
@@ -209,22 +212,22 @@ uint8_t Select()
     }
     if(RSTST == THM_RSTST_FEND)
     {
-        ISO_SelectFlag = 1;                                                     //ÉèÖÃÎªÑ¡ÔñÄ£Ê½
+        ISO_SelectFlag = 1;                                                     //è®¾ç½®ä¸ºé€‰æ‹©æ¨¡å¼
     }
     return RSTST;
 }
 
 /*
-¹¦ÄÜ£º	¸´Î»µ½×¼±¸
-²ÎÊı1£º	ÎŞ
-·µ»Ø£º	Ö´ĞĞ½á¹û
+åŠŸèƒ½ï¼š	å¤ä½åˆ°å‡†å¤‡
+å‚æ•°1ï¼š	æ— 
+è¿”å›ï¼š	æ‰§è¡Œç»“æœ
 */
 uint8_t ResetToReady()
 {
     uint8_t RSTST;
     uint16_t len;
 
-    if(ISO_SelectFlag == 0)                                                     //µØÖ·Ä£Ê½,´øUID
+    if(ISO_SelectFlag == 0)                                                     //åœ°å€æ¨¡å¼,å¸¦UID
     {
         ISO_SendTemp[0x00] = 0x22;
         ISO_SendTemp[0x01] = 0x26;
@@ -232,7 +235,7 @@ uint8_t ResetToReady()
 
         THM3070_SendFrame_V(ISO_SendTemp, 0x0A);
     }
-    else                                                                        //Ñ¡ÔñÄ£Ê½,²»´øUID
+    else                                                                        //é€‰æ‹©æ¨¡å¼,ä¸å¸¦UID
     {
         ISO_SendTemp[0x00] = 0x12;
         ISO_SendTemp[0x01] = 0x26;
@@ -249,18 +252,18 @@ uint8_t ResetToReady()
 }
 
 /*
-¹¦ÄÜ£º  ¶ÁÈ¡¿é
-²ÎÊı1£º ¿éºÅ
-²ÎÊı2£º ´æ·Å¿éÄÚÈİ
-²ÎÊı3£º ´æ·Å¿éÄÚÈİµÄ³¤¶È
-·µ»Ø£º  Ö´ĞĞ½á¹û
+åŠŸèƒ½ï¼š  è¯»å–å—
+å‚æ•°1ï¼š å—å·
+å‚æ•°2ï¼š å­˜æ”¾å—å†…å®¹
+å‚æ•°3ï¼š å­˜æ”¾å—å†…å®¹çš„é•¿åº¦
+è¿”å›ï¼š  æ‰§è¡Œç»“æœ
 */
 uint8_t ReadBlocks(uint8_t BlockNum, uint8_t *BlockData, uint16_t *BlockDataLen)
 {
     uint8_t RSTST;
     uint16_t len;
 
-    if(ISO_SelectFlag == 0)                                                     //µØÖ·Ä£Ê½,´øUID
+    if(ISO_SelectFlag == 0)                                                     //åœ°å€æ¨¡å¼,å¸¦UID
     {
         ISO_SendTemp[0x00] = 0x22;
         ISO_SendTemp[0x01] = 0x20;
@@ -269,7 +272,7 @@ uint8_t ReadBlocks(uint8_t BlockNum, uint8_t *BlockData, uint16_t *BlockDataLen)
 
         THM3070_SendFrame_V(ISO_SendTemp, 0x0B);
     }
-    else                                                                       //Ñ¡ÔñÄ£Ê½,²»´øUID
+    else                                                                       //é€‰æ‹©æ¨¡å¼,ä¸å¸¦UID
     {
         ISO_SendTemp[0x00] = 0x12;
         ISO_SendTemp[0x01] = 0x20;
@@ -291,18 +294,18 @@ uint8_t ReadBlocks(uint8_t BlockNum, uint8_t *BlockData, uint16_t *BlockDataLen)
 }
 
 /*
-¹¦ÄÜ£º  Ğ´Èë¿é
-²ÎÊı1£º ¿éºÅ
-²ÎÊı2£º ¿éÄÚÈİ
-²ÎÊı3£º ¿éÄÚÈİµÄ³¤¶È
-·µ»Ø£º  Ö´ĞĞ½á¹û
+åŠŸèƒ½ï¼š  å†™å…¥å—
+å‚æ•°1ï¼š å—å·
+å‚æ•°2ï¼š å—å†…å®¹
+å‚æ•°3ï¼š å—å†…å®¹çš„é•¿åº¦
+è¿”å›ï¼š  æ‰§è¡Œç»“æœ
 */
 uint8_t WriteBlocks(uint8_t BlockNum, uint8_t *BlockData, uint16_t BlockDataLen)
 {
     uint8_t RSTST;
     uint16_t len;
 
-    if(ISO_SelectFlag == 0)	                                                   //µØÖ·Ä£Ê½,´øUID
+    if(ISO_SelectFlag == 0)	                                                   //åœ°å€æ¨¡å¼,å¸¦UID
     {
         ISO_SendTemp[0x00] = 0x22;
         ISO_SendTemp[0x01] = 0x21;
@@ -312,7 +315,7 @@ uint8_t WriteBlocks(uint8_t BlockNum, uint8_t *BlockData, uint16_t BlockDataLen)
 
         THM3070_SendFrame_V(ISO_SendTemp, BlockDataLen + 0x0B);
     }
-    else                                                                       //Ñ¡ÔñÄ£Ê½,²»´øUID
+    else                                                                       //é€‰æ‹©æ¨¡å¼,ä¸å¸¦UID
     {
         ISO_SendTemp[0x00] = 0x12;
         ISO_SendTemp[0x01] = 0x21;
@@ -331,19 +334,19 @@ uint8_t WriteBlocks(uint8_t BlockNum, uint8_t *BlockData, uint16_t BlockDataLen)
 }
 
 /*
-¹¦ÄÜ£º  ¶ÁÈ¡¶à¸ö¿é
-²ÎÊı1£º Ê×¸ö¿éºÅ
-²ÎÊı2£º Òª¶ÁÈ¡µÄ¿é¸öÊı(0x00ÎªÊıÁ¿1)
-²ÎÊı3£º ´æ·Å¿éÄÚÈİ
-²ÎÊı4£º ´æ·Å¿éÄÚÈİµÄ³¤¶È
-·µ»Ø£º  Ö´ĞĞ½á¹û
+åŠŸèƒ½ï¼š  è¯»å–å¤šä¸ªå—
+å‚æ•°1ï¼š é¦–ä¸ªå—å·
+å‚æ•°2ï¼š è¦è¯»å–çš„å—ä¸ªæ•°(0x00ä¸ºæ•°é‡1)
+å‚æ•°3ï¼š å­˜æ”¾å—å†…å®¹
+å‚æ•°4ï¼š å­˜æ”¾å—å†…å®¹çš„é•¿åº¦
+è¿”å›ï¼š  æ‰§è¡Œç»“æœ
 */
 uint8_t ReadMultipleBlocks(uint8_t BlockNum, uint8_t BlockLen, uint8_t *BlockData, uint16_t *BlockDataLen)
 {
     uint8_t RSTST;
     uint16_t len;
 
-    if(ISO_SelectFlag == 0)                                                    //µØÖ·Ä£Ê½,´øUID
+    if(ISO_SelectFlag == 0)                                                    //åœ°å€æ¨¡å¼,å¸¦UID
     {
         ISO_SendTemp[0x00] = 0x22;
         ISO_SendTemp[0x01] = 0x23;
@@ -353,7 +356,7 @@ uint8_t ReadMultipleBlocks(uint8_t BlockNum, uint8_t BlockLen, uint8_t *BlockDat
 
         THM3070_SendFrame_V(ISO_SendTemp, 0x0C);
     }
-    else                                                                       //Ñ¡ÔñÄ£Ê½,²»´øUID
+    else                                                                       //é€‰æ‹©æ¨¡å¼,ä¸å¸¦UID
     {
         ISO_SendTemp[0x00] = 0x12;
         ISO_SendTemp[0x01] = 0x23;
@@ -376,19 +379,19 @@ uint8_t ReadMultipleBlocks(uint8_t BlockNum, uint8_t BlockLen, uint8_t *BlockDat
 }
 
 /*
-¹¦ÄÜ£º  ¶ÁÈ¡¿é
-²ÎÊı1£º Ê×¸ö¿éºÅ
-²ÎÊı2£º ÒªĞ´ÈëµÄ¿é¸öÊı(0x00ÎªÊıÁ¿1)
-²ÎÊı3£º ¿éÄÚÈİ
-²ÎÊı4£º ¿éÄÚÈİµÄ³¤¶È
-·µ»Ø£º  Ö´ĞĞ½á¹û
+åŠŸèƒ½ï¼š  è¯»å–å—
+å‚æ•°1ï¼š é¦–ä¸ªå—å·
+å‚æ•°2ï¼š è¦å†™å…¥çš„å—ä¸ªæ•°(0x00ä¸ºæ•°é‡1)
+å‚æ•°3ï¼š å—å†…å®¹
+å‚æ•°4ï¼š å—å†…å®¹çš„é•¿åº¦
+è¿”å›ï¼š  æ‰§è¡Œç»“æœ
 */
 uint8_t WriteMultipleBlocks(uint8_t BlockNum, uint8_t BlockLen, uint8_t *BlockData, uint16_t BlockDataLen)
 {
     uint8_t RSTST;
     uint16_t len;
 
-    if(ISO_SelectFlag == 0)                                                    //µØÖ·Ä£Ê½,´øUID
+    if(ISO_SelectFlag == 0)                                                    //åœ°å€æ¨¡å¼,å¸¦UID
     {
         ISO_SendTemp[0x00] = 0x22;
         ISO_SendTemp[0x01] = 0x24;
@@ -399,7 +402,7 @@ uint8_t WriteMultipleBlocks(uint8_t BlockNum, uint8_t BlockLen, uint8_t *BlockDa
 
         THM3070_SendFrame_V(ISO_SendTemp, BlockDataLen + 0x0C);
     }
-    else                                                                       //Ñ¡ÔñÄ£Ê½,²»´øUID
+    else                                                                       //é€‰æ‹©æ¨¡å¼,ä¸å¸¦UID
     {
         ISO_SendTemp[0x00] = 0x12;
         ISO_SendTemp[0x01] = 0x24;
@@ -419,16 +422,16 @@ uint8_t WriteMultipleBlocks(uint8_t BlockNum, uint8_t BlockLen, uint8_t *BlockDa
 }
 
 /*
-¹¦ÄÜ£º  Ğ´AFI
-²ÎÊı1£º AFI
-·µ»Ø£º  Ö´ĞĞ½á¹û
+åŠŸèƒ½ï¼š  å†™AFI
+å‚æ•°1ï¼š AFI
+è¿”å›ï¼š  æ‰§è¡Œç»“æœ
 */
 uint8_t WriteAFI(uint8_t AFI)
 {
     uint8_t RSTST;
     uint16_t len;
 
-    if(ISO_SelectFlag == 0)                                                    //µØÖ·Ä£Ê½,´øUID
+    if(ISO_SelectFlag == 0)                                                    //åœ°å€æ¨¡å¼,å¸¦UID
     {
         ISO_SendTemp[0x00] = 0x22;
         ISO_SendTemp[0x01] = 0x27;
@@ -437,7 +440,7 @@ uint8_t WriteAFI(uint8_t AFI)
 
         THM3070_SendFrame_V(ISO_SendTemp, 0x0B);
     }
-    else                                                                       //Ñ¡ÔñÄ£Ê½,²»´øUID
+    else                                                                       //é€‰æ‹©æ¨¡å¼,ä¸å¸¦UID
     {
         ISO_SendTemp[0x00] = 0x12;
         ISO_SendTemp[0x01] = 0x27;
@@ -455,16 +458,16 @@ uint8_t WriteAFI(uint8_t AFI)
 }
 
 /*
-¹¦ÄÜ£º  Ğ´DSFID
-²ÎÊı1£º DSFID
-·µ»Ø£º  Ö´ĞĞ½á¹û
+åŠŸèƒ½ï¼š  å†™DSFID
+å‚æ•°1ï¼š DSFID
+è¿”å›ï¼š  æ‰§è¡Œç»“æœ
 */
 uint8_t WriteDSFID(uint8_t DSFID)
 {
     uint8_t RSTST;
     uint16_t len;
 
-    if(ISO_SelectFlag == 0)                                                    //µØÖ·Ä£Ê½,´øUID
+    if(ISO_SelectFlag == 0)                                                    //åœ°å€æ¨¡å¼,å¸¦UID
     {
         ISO_SendTemp[0x00] = 0x22;
         ISO_SendTemp[0x01] = 0x29;
@@ -473,7 +476,7 @@ uint8_t WriteDSFID(uint8_t DSFID)
 
         THM3070_SendFrame_V(ISO_SendTemp, 0x0B);
     }
-    else                                                                       //Ñ¡ÔñÄ£Ê½,²»´øUID
+    else                                                                       //é€‰æ‹©æ¨¡å¼,ä¸å¸¦UID
     {
         ISO_SendTemp[0x00] = 0x12;
         ISO_SendTemp[0x01] = 0x29;
@@ -492,17 +495,17 @@ uint8_t WriteDSFID(uint8_t DSFID)
 
 
 /*
-¹¦ÄÜ£º  ¶ÁÏµÍ³ĞÅÏ¢
-²ÎÊı1£º ÏµÍ³ĞÅÏ¢
-²ÎÊı2£º ³¤¶È
-·µ»Ø£º  Ö´ĞĞ½á¹û
+åŠŸèƒ½ï¼š  è¯»ç³»ç»Ÿä¿¡æ¯
+å‚æ•°1ï¼š ç³»ç»Ÿä¿¡æ¯
+å‚æ•°2ï¼š é•¿åº¦
+è¿”å›ï¼š  æ‰§è¡Œç»“æœ
 */
 uint8_t ReadSysInfo(uint8_t *InfoData, uint16_t *InfoDataLen)
 {
     uint8_t RSTST;
     uint16_t len;
 
-    if(ISO_SelectFlag == 0)                                                    //µØÖ·Ä£Ê½,´øUID
+    if(ISO_SelectFlag == 0)                                                    //åœ°å€æ¨¡å¼,å¸¦UID
     {
         ISO_SendTemp[0x00] = 0x22;
         ISO_SendTemp[0x01] = 0x2B;
@@ -510,7 +513,7 @@ uint8_t ReadSysInfo(uint8_t *InfoData, uint16_t *InfoDataLen)
 
         THM3070_SendFrame_V(ISO_SendTemp, 0x0A);
     }
-    else                                                                       //Ñ¡ÔñÄ£Ê½,²»´øUID
+    else                                                                       //é€‰æ‹©æ¨¡å¼,ä¸å¸¦UID
     {
         ISO_SendTemp[0x00] = 0x12;
         ISO_SendTemp[0x01] = 0x2B;
@@ -532,17 +535,17 @@ uint8_t ReadSysInfo(uint8_t *InfoData, uint16_t *InfoDataLen)
 }
 
 /*
-¹¦ÄÜ£º  ¶Á¿é×´Ì¬
-²ÎÊı1£º ¿é×´Ì¬
-²ÎÊı2£º ³¤¶È
-·µ»Ø£º  Ö´ĞĞ½á¹û
+åŠŸèƒ½ï¼š  è¯»å—çŠ¶æ€
+å‚æ•°1ï¼š å—çŠ¶æ€
+å‚æ•°2ï¼š é•¿åº¦
+è¿”å›ï¼š  æ‰§è¡Œç»“æœ
 */
 uint8_t ReadMultipleStatus(uint8_t BlockNum, uint8_t BlockLen, uint8_t *Status, uint16_t *StatusLen)
 {
     uint8_t RSTST;
     uint16_t len;
 
-    if(ISO_SelectFlag == 0)                                                    //µØÖ·Ä£Ê½,´øUID
+    if(ISO_SelectFlag == 0)                                                    //åœ°å€æ¨¡å¼,å¸¦UID
     {
         ISO_SendTemp[0x00] = 0x22;
         ISO_SendTemp[0x01] = 0x2C;
@@ -552,7 +555,7 @@ uint8_t ReadMultipleStatus(uint8_t BlockNum, uint8_t BlockLen, uint8_t *Status, 
 
         THM3070_SendFrame_V(ISO_SendTemp, 0x0C);
     }
-    else                                                                       //Ñ¡ÔñÄ£Ê½,²»´øUID
+    else                                                                       //é€‰æ‹©æ¨¡å¼,ä¸å¸¦UID
     {
         ISO_SendTemp[0x00] = 0x12;
         ISO_SendTemp[0x01] = 0x2C;
@@ -576,18 +579,18 @@ uint8_t ReadMultipleStatus(uint8_t BlockNum, uint8_t BlockLen, uint8_t *Status, 
 }
 
 /*
-¹¦ÄÜ£º  Í¸´«Êı¾İ
-²ÎÊı1£º ·¢ËÍÊı¾İ
-²ÎÊı2£º ³¤¶È
-²ÎÊı3£º ½ÓÊÕÊı¾İ
-²ÎÊı4£º ³¤¶È
-·µ»Ø£º  Ö´ĞĞ½á¹û
+åŠŸèƒ½ï¼š  é€ä¼ æ•°æ®
+å‚æ•°1ï¼š å‘é€æ•°æ®
+å‚æ•°2ï¼š é•¿åº¦
+å‚æ•°3ï¼š æ¥æ”¶æ•°æ®
+å‚æ•°4ï¼š é•¿åº¦
+è¿”å›ï¼š  æ‰§è¡Œç»“æœ
 */
 uint8_t SendRFUCMD(uint8_t *SendData, uint16_t SendDataLen, uint8_t *RecvData, uint16_t *RecvDataLen)
 {
     uint8_t RSTST;
 
-    THM3070_WriteREG(THM_REG_PSEL, 0x20);                                      //Í¨ĞÅĞ­ÒéÖÃÎªISO15693
+    THM3070_WriteREG(THM_REG_PSEL, 0x20);                                      //é€šä¿¡åè®®ç½®ä¸ºISO15693
     THM3070_WriteREG(THM_REG_SMOD, 0x01);                                      //
 
     THM3070_SendFrame_V(SendData, SendDataLen);
@@ -599,16 +602,16 @@ uint8_t SendRFUCMD(uint8_t *SendData, uint16_t SendDataLen, uint8_t *RecvData, u
 
 
 /*
-¹¦ÄÜ£º	ÓÀ¾ÃËø¶¨¿é,É÷ÓÃ
-²ÎÊı1£º	¿éºÅ
-·µ»Ø£º	Ö´ĞĞ½á¹û
+åŠŸèƒ½ï¼š	æ°¸ä¹…é”å®šå—,æ…ç”¨
+å‚æ•°1ï¼š	å—å·
+è¿”å›ï¼š	æ‰§è¡Œç»“æœ
 */
 uint8_t LockBlocks(uint8_t BlockNum)
 {
     uint8_t RSTST;
     uint16_t len;
 
-    if(ISO_SelectFlag == 0)                                                    //µØÖ·Ä£Ê½,´øUID
+    if(ISO_SelectFlag == 0)                                                    //åœ°å€æ¨¡å¼,å¸¦UID
     {
         ISO_SendTemp[0x00] = 0x22;
         ISO_SendTemp[0x01] = 0x22;
@@ -617,7 +620,7 @@ uint8_t LockBlocks(uint8_t BlockNum)
 
         THM3070_SendFrame_V(ISO_SendTemp, 0x0B);
     }
-    else                                                                       //Ñ¡ÔñÄ£Ê½,²»´øUID
+    else                                                                       //é€‰æ‹©æ¨¡å¼,ä¸å¸¦UID
     {
         ISO_SendTemp[0x00] = 0x12;
         ISO_SendTemp[0x01] = 0x22;
@@ -635,16 +638,16 @@ uint8_t LockBlocks(uint8_t BlockNum)
 }
 
 /*
-¹¦ÄÜ£º  ÓÀ¾ÃËø¶¨AFI,É÷ÓÃ
-²ÎÊı1£º ¿éºÅ
-·µ»Ø£º  Ö´ĞĞ½á¹û
+åŠŸèƒ½ï¼š  æ°¸ä¹…é”å®šAFI,æ…ç”¨
+å‚æ•°1ï¼š å—å·
+è¿”å›ï¼š  æ‰§è¡Œç»“æœ
 */
 uint8_t LockAFI()
 {
     uint8_t RSTST;
     uint16_t len;
 
-    if(ISO_SelectFlag == 0)                                                    //µØÖ·Ä£Ê½,´øUID
+    if(ISO_SelectFlag == 0)                                                    //åœ°å€æ¨¡å¼,å¸¦UID
     {
         ISO_SendTemp[0x00] = 0x22;
         ISO_SendTemp[0x01] = 0x28;
@@ -652,7 +655,7 @@ uint8_t LockAFI()
 
         THM3070_SendFrame_V(ISO_SendTemp, 0x0A);
     }
-    else                                                                       //Ñ¡ÔñÄ£Ê½,²»´øUID
+    else                                                                       //é€‰æ‹©æ¨¡å¼,ä¸å¸¦UID
     {
         ISO_SendTemp[0x00] = 0x12;
         ISO_SendTemp[0x01] = 0x28;
@@ -669,16 +672,16 @@ uint8_t LockAFI()
 }
 
 /*
-¹¦ÄÜ£º  ÓÀ¾ÃËø¶¨DSFID,É÷ÓÃ
-²ÎÊı1£º ¿éºÅ
-·µ»Ø£º  Ö´ĞĞ½á¹û
+åŠŸèƒ½ï¼š  æ°¸ä¹…é”å®šDSFID,æ…ç”¨
+å‚æ•°1ï¼š å—å·
+è¿”å›ï¼š  æ‰§è¡Œç»“æœ
 */
 uint8_t LockDSFID()
 {
     uint8_t RSTST;
     uint16_t len;
 
-    if(ISO_SelectFlag == 0)                                                    //µØÖ·Ä£Ê½,´øUID
+    if(ISO_SelectFlag == 0)                                                    //åœ°å€æ¨¡å¼,å¸¦UID
     {
         ISO_SendTemp[0x00] = 0x22;
         ISO_SendTemp[0x01] = 0x2A;
@@ -686,7 +689,7 @@ uint8_t LockDSFID()
 
         THM3070_SendFrame_V(ISO_SendTemp, 0x0A);
     }
-    else                                                                       //Ñ¡ÔñÄ£Ê½,²»´øUID
+    else                                                                       //é€‰æ‹©æ¨¡å¼,ä¸å¸¦UID
     {
         ISO_SendTemp[0x00] = 0x12;
         ISO_SendTemp[0x01] = 0x2A;
@@ -703,31 +706,31 @@ uint8_t LockDSFID()
 }
 
 /*
-¹¦ÄÜ£º	²âÊÔ¿¨Æ¬ÊÇ·ñÈÔÔÚÌìÏß³¡ÄÚ
-²ÎÊı1£º	ÎŞ
-·µ»Ø£º	Ö´ĞĞ½á¹û
+åŠŸèƒ½ï¼š	æµ‹è¯•å¡ç‰‡æ˜¯å¦ä»åœ¨å¤©çº¿åœºå†…
+å‚æ•°1ï¼š	æ— 
+è¿”å›ï¼š	æ‰§è¡Œç»“æœ
 */
 uint8_t TESTV()
 {
     uint8_t RSTST;
     uint16_t len;
 
-    if(ISO_SelectFlag == 0)                                                    //µØÖ·Ä£Ê½,´øUID
+    if(ISO_SelectFlag == 0)                                                    //åœ°å€æ¨¡å¼,å¸¦UID
     {
         ISO_SendTemp[0x00] = 0x22;
-        ISO_SendTemp[0x01] = 0x03;                                             //·¢ËÍÒ»¸öÆäËûÎ´¶¨ÒåµÄÃüÁî
+        ISO_SendTemp[0x01] = 0x03;                                             //å‘é€ä¸€ä¸ªå…¶ä»–æœªå®šä¹‰çš„å‘½ä»¤
         memcpy(ISO_SendTemp + 2, ISO_UIDTemp, 0x08);
 
         THM3070_SendFrame_V(ISO_SendTemp, 0x0A);
     }
-    else                                                                       //Ñ¡ÔñÄ£Ê½,²»´øUID
+    else                                                                       //é€‰æ‹©æ¨¡å¼,ä¸å¸¦UID
     {
         ISO_SendTemp[0x00] = 0x12;
         ISO_SendTemp[0x01] = 0x03;
 
         THM3070_SendFrame_V(ISO_SendTemp, 0x02);
     }
-    RSTST = THM3070_RecvFrame_V(ISO_SendTemp, &len);                           //½ÓÊÕÏìÓ¦
+    RSTST = THM3070_RecvFrame_V(ISO_SendTemp, &len);                           //æ¥æ”¶å“åº”
 
     return RSTST;
 }
