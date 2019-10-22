@@ -729,10 +729,6 @@ uint8_t PPS(uint8_t F, uint8_t D)
             STM7816_SetFD(F, D);
             return 0;
         }
-        else
-        {
-            return 1;
-        }
     }
     else                                                                        //不按协议
     {
@@ -741,10 +737,6 @@ uint8_t PPS(uint8_t F, uint8_t D)
         //{
             //STM7816_SetFD(F,D);
             //return 0;
-        //}
-        //else
-        //{
-            //return 1;
         //}
     }
 
